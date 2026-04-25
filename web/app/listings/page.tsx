@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   allMakeNames,
+  allSources,
   dbExists,
   listLatestListings,
   type ListingsQuery,
@@ -9,6 +10,7 @@ import {
 export const dynamic = "force-dynamic";
 
 type SearchParams = {
+  source?: string;
   make?: string;
   year?: string;
   min?: string;
@@ -33,6 +35,7 @@ export default async function ListingsPage({
   const offset = (page - 1) * PER_PAGE;
 
   const q: ListingsQuery = {
+    source: sp.source || undefined,
     make: sp.make || undefined,
     year: sp.year ? Number(sp.year) : undefined,
     minPrice: sp.min ? Number(sp.min) : undefined,
@@ -45,6 +48,7 @@ export default async function ListingsPage({
 
   const { rows, total } = listLatestListings(q);
   const makes = allMakeNames();
+  const sources = allSources();
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
@@ -59,8 +63,20 @@ export default async function ListingsPage({
       <form
         action="/listings"
         method="get"
-        className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm"
+        className="grid grid-cols-2 md:grid-cols-7 gap-2 text-sm"
       >
+        <select
+          name="source"
+          defaultValue={sp.source ?? ""}
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        >
+          <option value="">All sources</option>
+          {sources.map((s) => (
+            <option key={s.source} value={s.source}>
+              {s.source} ({s.n.toLocaleString()})
+            </option>
+          ))}
+        </select>
         <select
           name="make"
           defaultValue={sp.make ?? ""}
@@ -120,7 +136,11 @@ export default async function ListingsPage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {rows.map((r) => {
-          const cdHref = `https://www.taladrod.com/w40/iCar/CarDet.aspx?cid=${r.cid}`;
+          const cdHref =
+            r.url ??
+            (r.source === "taladrod"
+              ? `https://www.taladrod.com/w40/iCar/CarDet.aspx?cid=${r.cid}`
+              : "#");
           const titleParts = [r.yr4, r.make_name, r.model_name].filter(Boolean);
           return (
             <a
@@ -144,11 +164,16 @@ export default async function ListingsPage({
                   <div className="font-medium text-white/90 truncate">
                     {titleParts.join(" ") || r.namemmt}
                   </div>
-                  {r.ishot === "Y" && (
-                    <span className="text-[10px] uppercase tracking-wide text-rose-300 bg-rose-500/15 px-1.5 py-0.5 rounded">
-                      hot
+                  <div className="flex items-center gap-1 shrink-0">
+                    <span className="text-[10px] uppercase tracking-wide text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
+                      {r.source}
                     </span>
-                  )}
+                    {r.ishot === "Y" && (
+                      <span className="text-[10px] uppercase tracking-wide text-rose-300 bg-rose-500/15 px-1.5 py-0.5 rounded">
+                        hot
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-xs text-white/50 truncate mt-0.5">
                   {r.title || r.namemmt}

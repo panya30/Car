@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { dbExists, totals, topMakes, yearDistribution, listRuns } from "@/lib/db";
+import {
+  dbExists, totals, topMakes, yearDistribution, listRuns, allSources,
+} from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,7 @@ export default function Home() {
   const makes = topMakes(15);
   const years = yearDistribution();
   const runs = listRuns(5);
+  const sources = allSources();
 
   if (!t.ts) return <Empty />;
 
@@ -30,6 +33,19 @@ export default function Home() {
         <Stat label="Distinct cars ever" value={t.uniqueCids.toLocaleString()} />
         <Stat label="Snapshots" value={t.snapshots.toString()} />
         <Stat label="Total rows" value={t.totalRows.toLocaleString()} />
+      </section>
+
+      <section className="flex flex-wrap gap-2 text-sm">
+        {sources.map((s) => (
+          <Link
+            key={s.source}
+            href={`/listings?source=${encodeURIComponent(s.source)}`}
+            className="px-3 py-1.5 rounded border border-white/10 bg-white/[0.02] hover:bg-white/5 transition"
+          >
+            <span className="text-white/90 mr-2">{s.source}</span>
+            <span className="text-white/40 tabular-nums">{s.n.toLocaleString()}</span>
+          </Link>
+        ))}
       </section>
 
       <section className="grid lg:grid-cols-2 gap-8">

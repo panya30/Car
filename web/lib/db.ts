@@ -35,9 +35,19 @@ export function latestSnapshot(): string | null {
   return row?.ts ?? null;
 }
 
+const LATEST_PER_SOURCE_CTE = `
+WITH latest AS (
+  SELECT source, MAX(scraped_at) AS ts FROM listings GROUP BY source
+)
+`;
+const JOIN_LATEST = `
+  INNER JOIN latest lt ON lt.source = l.source AND lt.ts = l.scraped_at
+`;
+
 export type Listing = {
   cid: string;
   scraped_at: string;
+  source: string;
   yr4: number | null;
   mk: number | null;
   md: number | null;
@@ -49,6 +59,8 @@ export type Listing = {
   upd: string | null;
   ipgvw: number | null;
   img: string | null;
+  url: string | null;
+  location: string | null;
   isnew: string | null;
   ishot: string | null;
   issold: string | null;
@@ -60,13 +72,13 @@ export type Listing = {
 export function totals() {
   const db = getDb();
   const ts = latestSnapshot();
-  const inLatest = ts
-    ? (db
-        .prepare<[string], { n: number }>(
-          "SELECT COUNT(*) AS n FROM listings WHERE scraped_at = ?",
-        )
-        .get(ts)?.n ?? 0)
-    : 0;
+  // "in latest" = sum of cars at each source's most recent snapshot.
+  const inLatest = db
+    .prepare<[], { n: number }>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT COUNT(*) AS n FROM listings l ${JOIN_LATEST}`,
+    )
+    .get()?.n ?? 0;
   const totalRows = db
     .prepare<[], { n: number }>("SELECT COUNT(*) AS n FROM listings")
     .get()?.n ?? 0;
@@ -90,40 +102,39 @@ export type MakeAgg = {
 };
 
 export function topMakes(limit = 50): MakeAgg[] {
-  const ts = latestSnapshot();
-  if (!ts) return [];
   return getDb()
-    .prepare<[string, number], MakeAgg>(
-      `SELECT m.name AS make,
+    .prepare<[number], MakeAgg>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT COALESCE(NULLIF(l.amake, ''), m.name) AS make,
               COUNT(*) AS n,
               AVG(l.prc) AS avg_p,
               MIN(l.prc) AS min_p,
               MAX(l.prc) AS max_p
-       FROM listings l
+       FROM listings l ${JOIN_LATEST}
        LEFT JOIN makes m ON CAST(m.mk AS INTEGER) = l.mk
-       WHERE l.scraped_at = ?
-       GROUP BY m.name
+       WHERE COALESCE(NULLIF(l.amake, ''), m.name) IS NOT NULL
+       GROUP BY make
        ORDER BY n DESC
        LIMIT ?`,
     )
-    .all(ts, limit);
+    .all(limit);
 }
 
 export function yearDistribution(): { yr4: number; n: number }[] {
-  const ts = latestSnapshot();
-  if (!ts) return [];
   return getDb()
-    .prepare<[string], { yr4: number; n: number }>(
-      `SELECT yr4, COUNT(*) AS n
-       FROM listings
-       WHERE scraped_at = ? AND yr4 IS NOT NULL
-       GROUP BY yr4
-       ORDER BY yr4 DESC`,
+    .prepare<[], { yr4: number; n: number }>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT l.yr4 AS yr4, COUNT(*) AS n
+       FROM listings l ${JOIN_LATEST}
+       WHERE l.yr4 IS NOT NULL
+       GROUP BY l.yr4
+       ORDER BY l.yr4 DESC`,
     )
-    .all(ts);
+    .all();
 }
 
 export type ListingsQuery = {
+  source?: string;
   make?: string;
   year?: number;
   minPrice?: number;
@@ -135,13 +146,16 @@ export type ListingsQuery = {
 };
 
 export function listLatestListings(q: ListingsQuery = {}) {
-  const ts = latestSnapshot();
-  if (!ts) return { rows: [] as Listing[], total: 0 };
-  const where: string[] = ["l.scraped_at = ?"];
-  const params: (string | number)[] = [ts];
+  // restrict to each source's latest snapshot via JOIN_LATEST below
+  const where: string[] = [];
+  const params: (string | number)[] = [];
+  if (q.source) {
+    where.push("l.source = ?");
+    params.push(q.source);
+  }
   if (q.make) {
-    where.push("m.name = ?");
-    params.push(q.make);
+    where.push("(m.name = ? OR l.amake = ?)");
+    params.push(q.make, q.make);
   }
   if (q.year) {
     where.push("l.yr4 = ?");
@@ -170,17 +184,19 @@ export function listLatestListings(q: ListingsQuery = {}) {
   const limit = Math.min(q.limit ?? 60, 200);
   const offset = Math.max(q.offset ?? 0, 0);
 
+  const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
   const sql = `
-    SELECT l.cid, l.scraped_at, l.yr4, l.mk, l.md, l.prc, l.pcdisc, l.prvprc,
-           l.namemmt, l.title, l.upd, l.ipgvw, l.img,
-           l.isnew, l.ishot, l.issold, l.isdp,
+    ${LATEST_PER_SOURCE_CTE}
+    SELECT l.cid, l.scraped_at, l.source, l.yr4, l.mk, l.md, l.prc,
+           l.pcdisc, l.prvprc, l.namemmt, l.title, l.upd, l.ipgvw, l.img,
+           l.url, l.location, l.isnew, l.ishot, l.issold, l.isdp,
            COALESCE(NULLIF(l.amake, ''),  m.name)  AS make_name,
            COALESCE(NULLIF(l.amodel, ''), md.name) AS model_name
-    FROM listings l
+    FROM listings l ${JOIN_LATEST}
     LEFT JOIN makes  m  ON CAST(m.mk AS INTEGER)  = l.mk
     LEFT JOIN models md ON CAST(md.mk AS INTEGER) = l.mk
                        AND CAST(md.md AS INTEGER) = l.md
-    WHERE ${where.join(" AND ")}
+    ${whereClause}
     ORDER BY ${order}
     LIMIT ? OFFSET ?
   `;
@@ -189,10 +205,11 @@ export function listLatestListings(q: ListingsQuery = {}) {
     .all(...params, limit, offset);
 
   const totalSql = `
+    ${LATEST_PER_SOURCE_CTE}
     SELECT COUNT(*) AS n
-    FROM listings l
+    FROM listings l ${JOIN_LATEST}
     LEFT JOIN makes  m  ON CAST(m.mk AS INTEGER) = l.mk
-    WHERE ${where.join(" AND ")}
+    ${whereClause}
   `;
   const total = getDb()
     .prepare<(string | number)[], { n: number }>(totalSql)
@@ -200,18 +217,29 @@ export function listLatestListings(q: ListingsQuery = {}) {
   return { rows, total };
 }
 
-export function allMakeNames(): string[] {
-  const ts = latestSnapshot();
-  if (!ts) return [];
-  const rows = getDb()
-    .prepare<[string], { name: string }>(
-      `SELECT DISTINCT m.name
-       FROM listings l
-       JOIN makes m ON CAST(m.mk AS INTEGER) = l.mk
-       WHERE l.scraped_at = ?
-       ORDER BY m.name`,
+export function allSources(): { source: string; n: number }[] {
+  return getDb()
+    .prepare<[], { source: string; n: number }>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT l.source AS source, COUNT(*) AS n
+       FROM listings l ${JOIN_LATEST}
+       GROUP BY l.source
+       ORDER BY n DESC`,
     )
-    .all(ts);
+    .all();
+}
+
+export function allMakeNames(): string[] {
+  const rows = getDb()
+    .prepare<[], { name: string }>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT DISTINCT COALESCE(NULLIF(l.amake, ''), m.name) AS name
+       FROM listings l ${JOIN_LATEST}
+       LEFT JOIN makes m ON CAST(m.mk AS INTEGER) = l.mk
+       WHERE COALESCE(NULLIF(l.amake, ''), m.name) IS NOT NULL
+       ORDER BY name`,
+    )
+    .all();
   return rows.map((r) => r.name).filter(Boolean);
 }
 
