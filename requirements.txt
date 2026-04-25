@@ -1,0 +1,8 @@
+# scraper.py runs on stdlib alone, but curl-cffi is strongly recommended:
+# its Chrome TLS fingerprint dramatically reduces AWS-WAF challenges from
+# CloudFront. Install one of:
+#
+#   pip install curl-cffi
+#   pip install -r requirements.txt
+#
+curl-cffi>=0.7.0

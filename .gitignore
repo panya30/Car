@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.venv/
+venv/
+.env
+.DS_Store
+
+# Local data — ship the schema, not the snapshots
+data/*.db
+data/*.db-journal
+data/*.db-wal
+data/*.db-shm
+data/*.log
+data/*.csv
+data/dump.sql
