@@ -179,7 +179,7 @@ def log(msg):
 
 def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
     seen = set()
-    rows = []
+    pending = []  # buffered rows committed per-make so the UI sees progress
     queries_run = 0
 
     def absorb(data, label):
@@ -193,10 +193,24 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
             if not cid or cid in seen:
                 continue
             seen.add(cid)
-            rows.append(car_to_row(car, scraped_at, run_id))
+            pending.append(car_to_row(car, scraped_at, run_id))
             new += 1
         log(f"  {label}: cars={len(cars)} ncar={ncar} new={new} total={len(seen)}")
         return ncar
+
+    def flush(label=""):
+        nonlocal pending
+        if not pending:
+            return
+        conn.executemany(INSERT_SQL, pending)
+        conn.execute(
+            "UPDATE scrape_runs SET cars_seen=?, cars_unique=? WHERE run_id=?",
+            (len(seen), len(seen), run_id),
+        )
+        conn.commit()
+        if label:
+            log(f"    flushed {len(pending)} rows{' after ' + label if label else ''}")
+        pending = []
 
     log("Step 1: fetch fno:all")
     try:
@@ -205,6 +219,7 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
         log(f"FATAL: {e}. Cool-down and retry, or use Playwright/curl-cffi (see README).")
         raise
     absorb(root, "fno:all")
+    flush()
     makes = root.get("lists", []) or []
     log(f"Discovered {len(makes)} makes")
 
@@ -286,10 +301,10 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
                 continue
             absorb(page2, f"    [{j}/{len(models)}] mk:{mk}+md:{md} {mname}")
 
-    log(f"Inserting {len(rows)} rows...")
-    conn.executemany(INSERT_SQL, rows)
-    conn.commit()
-    return queries_run, len(rows), len(seen)
+        flush(label=name)
+
+    flush()
+    return queries_run, len(seen), len(seen)
 
 
 def run(sleep_s=DEFAULT_SLEEP, max_makes=None, smoke=False, note=None):

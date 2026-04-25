@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue",
+    Arial, "Noto Sans Thai", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Code", "Roboto Mono", Menlo,
+    Consolas, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: #0b0d10;
+  color: #e7eaee;
+  font-family: var(--font-sans);
+  font-feature-settings: "tnum" 1, "ss01" 1;
+}
+
+::selection {
+  background: #2a3a52;
+  color: #fff;
+}
