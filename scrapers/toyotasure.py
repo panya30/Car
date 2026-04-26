@@ -62,16 +62,69 @@ def _normalise(item: dict) -> dict | None:
     }
 
 
+# Toyota Sure detail pages are React Server Components — the data lands
+# inside ``self.__next_f.push([1, "..."])`` chunks. We concatenate every
+# chunk and pull values by JSON-key.
+RSC_CHUNK_RE = re.compile(r'self\.__next_f\.push\(\[1,"((?:[^"\\]|\\.)*)"\]\)')
+
+DETAIL_KEYS = {
+    "yr4":          ("Year",),
+    "amake":        ("Brand",),
+    "amodel":       ("Model",),
+    "atrim":        ("Grade", "Variant"),
+    "color":        ("Color",),
+    "transmission": ("Transmission", "Gear"),
+    "fuel":         ("Fuel",),
+    "body_type":    ("CarType", "BodyType"),
+    "mileage_km":   ("Mileage",),
+    "condition":    ("FloodingCondition",),
+    "seller_name":  ("DealerDisplayName", "BranchDisplayName"),
+    "location":     ("Province",),
+}
+PRICE_KEYS = ("ResellingPrice", "PromotionPrice", "ResellingPriceWithVAT", "CashPrice")
+
+
+def _decode_rsc_blob(html: str) -> str:
+    parts = RSC_CHUNK_RE.findall(html)
+    return "".join(
+        s.replace('\\n', '\n').replace('\\"', '"')
+         .replace('\\u003c', '<').replace('\\u003e', '>')
+        for s in parts
+    )
+
+
+def _extract_key(blob: str, *keys: str) -> str | None:
+    for k in keys:
+        m = re.search(rf'"{k}"\s*:\s*"([^"]+)"', blob)
+        if m:
+            return m.group(1).strip()
+        m = re.search(rf'"{k}"\s*:\s*(\d+(?:\.\d+)?)', blob)
+        if m:
+            return m.group(1)
+    return None
+
+
 def _enrich_detail(row: dict, html: str) -> None:
-    """Best-effort price/year extraction from the detail HTML."""
+    """Pull every detail field we can from a Toyota Sure detail page."""
+    blob = _decode_rsc_blob(html)
+    for col, keys in DETAIL_KEYS.items():
+        if row.get(col):
+            continue
+        val = _extract_key(blob, *keys)
+        if not val:
+            continue
+        if col in ("yr4", "mileage_km"):
+            row[col] = C.parse_int(val)
+        elif col == "amake" or col == "amodel":
+            row[col] = val.upper()
+        else:
+            row[col] = val
     if not row.get("prc"):
-        m = PRICE_RE.search(html)
-        if m:
-            row["prc"] = C.parse_int(m.group(1) or m.group(2))
-    if not row.get("yr4"):
-        m = YEAR_RE.search(html)
-        if m:
-            row["yr4"] = int(m.group(0))
+        for k in PRICE_KEYS:
+            v = _extract_key(blob, k)
+            if v:
+                row["prc"] = C.parse_int(v)
+                break
 
 
 def run(conn, *, sleep_s: float = 1.5, note: str | None = None,

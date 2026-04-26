@@ -2,8 +2,12 @@ import Link from "next/link";
 import {
   allMakeNames,
   allSources,
+  bodyFacet,
+  colorFacet,
   dbExists,
+  fuelFacet,
   listLatestListings,
+  transmissionFacet,
   type ListingsQuery,
 } from "@/lib/db";
 
@@ -15,6 +19,11 @@ type SearchParams = {
   year?: string;
   min?: string;
   max?: string;
+  fuel?: string;
+  trans?: string;
+  body?: string;
+  color?: string;
+  maxkm?: string;
   q?: string;
   sort?: ListingsQuery["sort"];
   page?: string;
@@ -40,6 +49,11 @@ export default async function ListingsPage({
     year: sp.year ? Number(sp.year) : undefined,
     minPrice: sp.min ? Number(sp.min) : undefined,
     maxPrice: sp.max ? Number(sp.max) : undefined,
+    fuel: sp.fuel || undefined,
+    transmission: sp.trans || undefined,
+    body: sp.body || undefined,
+    color: sp.color || undefined,
+    maxMileage: sp.maxkm ? Number(sp.maxkm) : undefined,
     search: sp.q || undefined,
     sort: sp.sort,
     limit: PER_PAGE,
@@ -49,6 +63,10 @@ export default async function ListingsPage({
   const { rows, total } = listLatestListings(q);
   const makes = allMakeNames();
   const sources = allSources();
+  const fuels = fuelFacet();
+  const transmissions = transmissionFacet();
+  const bodies = bodyFacet();
+  const colors = colorFacet().slice(0, 30); // colors can be very long-tail
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
   return (
@@ -63,7 +81,7 @@ export default async function ListingsPage({
       <form
         action="/listings"
         method="get"
-        className="grid grid-cols-2 md:grid-cols-7 gap-2 text-sm"
+        className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm"
       >
         <select
           name="source"
@@ -118,8 +136,64 @@ export default async function ListingsPage({
           <option value="year_desc">Newest year</option>
           <option value="price_desc">Price ↓</option>
           <option value="price_asc">Price ↑</option>
+          <option value="mileage_asc">Lowest km</option>
           <option value="views_desc">Most viewed</option>
         </select>
+        <select
+          name="fuel"
+          defaultValue={sp.fuel ?? ""}
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        >
+          <option value="">Any fuel</option>
+          {fuels.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.value} ({f.n.toLocaleString()})
+            </option>
+          ))}
+        </select>
+        <select
+          name="trans"
+          defaultValue={sp.trans ?? ""}
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        >
+          <option value="">Any transmission</option>
+          {transmissions.map((t) => (
+            <option key={t.value} value={t.value}>
+              {t.value.length > 22 ? t.value.slice(0, 22) + "…" : t.value} ({t.n.toLocaleString()})
+            </option>
+          ))}
+        </select>
+        <select
+          name="body"
+          defaultValue={sp.body ?? ""}
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        >
+          <option value="">Any body</option>
+          {bodies.map((b) => (
+            <option key={b.value} value={b.value}>
+              {b.value} ({b.n.toLocaleString()})
+            </option>
+          ))}
+        </select>
+        <select
+          name="color"
+          defaultValue={sp.color ?? ""}
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        >
+          <option value="">Any color</option>
+          {colors.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.value} ({c.n.toLocaleString()})
+            </option>
+          ))}
+        </select>
+        <input
+          name="maxkm"
+          defaultValue={sp.maxkm ?? ""}
+          placeholder="Max km"
+          inputMode="numeric"
+          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+        />
         <input
           name="q"
           defaultValue={sp.q ?? ""}
@@ -182,13 +256,36 @@ export default async function ListingsPage({
                   <div className="text-lg font-semibold tabular-nums text-[#3ba3ff]">
                     {r.prc != null ? `฿${r.prc.toLocaleString()}` : "—"}
                   </div>
-                  <div className="text-xs text-white/40">
-                    {r.ipgvw != null ? `${r.ipgvw.toLocaleString()} views` : ""}
+                  <div className="text-xs text-white/40 tabular-nums">
+                    {r.mileage_km != null
+                      ? `${r.mileage_km.toLocaleString()} km`
+                      : r.ipgvw != null
+                        ? `${r.ipgvw.toLocaleString()} views`
+                        : ""}
                   </div>
                 </div>
                 {r.prvprc && (
                   <div className="mt-1 text-xs text-emerald-400/80">
                     was ฿{r.prvprc} · {r.pcdisc != null ? `-${r.pcdisc}%` : ""}
+                  </div>
+                )}
+                <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-white/45">
+                  {r.fuel && <Spec label={r.fuel} />}
+                  {r.transmission && (
+                    <Spec
+                      label={
+                        r.transmission.length > 14
+                          ? r.transmission.slice(0, 14) + "…"
+                          : r.transmission
+                      }
+                    />
+                  )}
+                  {r.body_type && <Spec label={r.body_type} />}
+                  {r.color && <Spec label={r.color} accent />}
+                </div>
+                {(r.seller_name || r.location) && (
+                  <div className="mt-1.5 text-[11px] text-white/35 truncate">
+                    {[r.seller_name, r.location].filter(Boolean).join(" · ")}
                   </div>
                 )}
               </div>
@@ -203,6 +300,18 @@ export default async function ListingsPage({
 
       <Pagination current={page} total={totalPages} sp={sp} />
     </div>
+  );
+}
+
+function Spec({ label, accent = false }: { label: string; accent?: boolean }) {
+  return (
+    <span
+      className={`px-1.5 py-0.5 rounded ${
+        accent ? "bg-[#3ba3ff]/15 text-[#9ed1ff]" : "bg-white/5"
+      }`}
+    >
+      {label}
+    </span>
   );
 }
 

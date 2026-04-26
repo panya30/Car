@@ -147,7 +147,10 @@ LISTINGS_COLS = (
     "yr4", "amake", "amodel", "abody", "atrim",
     "namemmt", "title", "prc", "prvprc", "pcdisc",
     "isnew", "issold", "ishot", "isdp",
-    "upd", "ipgvw", "img", "url", "location", "raw_json",
+    "upd", "ipgvw", "img", "url", "location",
+    "mileage_km", "color", "transmission", "fuel", "body_type",
+    "seller_name", "seller_type", "condition", "detail_fetched_at",
+    "raw_json",
 )
 _INSERT_SQL = (
     f"INSERT OR IGNORE INTO listings ({', '.join(LISTINGS_COLS)}) "

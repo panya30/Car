@@ -38,6 +38,17 @@ CREATE TABLE IF NOT EXISTS listings (
     img        TEXT,
     url        TEXT,
     location   TEXT,
+    -- Deep-detail fields populated by the per-source detail-page enrichment
+    -- pass. NULL when the list page is the only source we have.
+    mileage_km   INTEGER,
+    color        TEXT,
+    transmission TEXT,
+    fuel         TEXT,
+    body_type    TEXT,
+    seller_name  TEXT,
+    seller_type  TEXT,
+    condition    TEXT,
+    detail_fetched_at TEXT,
     raw_json   TEXT,
     PRIMARY KEY (cid, scraped_at)
 );
@@ -101,9 +112,13 @@ LEFT JOIN models md_t ON CAST(md_t.mk AS INTEGER) = l.mk
 
 def connect():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DB_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
+    # Concurrent writers (e.g. toyotasure + taladrod enrichers running in
+    # parallel) all need a brief exclusive lock to commit. Waiting up to
+    # 30s avoids spurious "database is locked" errors.
+    conn.execute("PRAGMA busy_timeout=30000")
     return conn
 
 
@@ -120,9 +135,18 @@ def init():
     # NULLs/defaults for existing rows.
     listing_cols = _columns(conn, "listings")
     for col, ddl in [
-        ("source",   "TEXT NOT NULL DEFAULT 'taladrod'"),
-        ("url",      "TEXT"),
-        ("location", "TEXT"),
+        ("source",            "TEXT NOT NULL DEFAULT 'taladrod'"),
+        ("url",               "TEXT"),
+        ("location",          "TEXT"),
+        ("mileage_km",        "INTEGER"),
+        ("color",             "TEXT"),
+        ("transmission",      "TEXT"),
+        ("fuel",              "TEXT"),
+        ("body_type",         "TEXT"),
+        ("seller_name",       "TEXT"),
+        ("seller_type",       "TEXT"),
+        ("condition",         "TEXT"),
+        ("detail_fetched_at", "TEXT"),
     ]:
         if col not in listing_cols:
             conn.execute(f"ALTER TABLE listings ADD COLUMN {col} {ddl}")

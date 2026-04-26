@@ -61,6 +61,15 @@ export type Listing = {
   img: string | null;
   url: string | null;
   location: string | null;
+  mileage_km: number | null;
+  color: string | null;
+  transmission: string | null;
+  fuel: string | null;
+  body_type: string | null;
+  seller_name: string | null;
+  seller_type: string | null;
+  condition: string | null;
+  detail_fetched_at: string | null;
   isnew: string | null;
   ishot: string | null;
   issold: string | null;
@@ -139,8 +148,13 @@ export type ListingsQuery = {
   year?: number;
   minPrice?: number;
   maxPrice?: number;
+  fuel?: string;
+  transmission?: string;
+  body?: string;
+  color?: string;
+  maxMileage?: number;
   search?: string;
-  sort?: "price_desc" | "price_asc" | "year_desc" | "views_desc";
+  sort?: "price_desc" | "price_asc" | "year_desc" | "views_desc" | "mileage_asc";
   limit?: number;
   offset?: number;
 };
@@ -169,6 +183,26 @@ export function listLatestListings(q: ListingsQuery = {}) {
     where.push("l.prc <= ?");
     params.push(q.maxPrice);
   }
+  if (q.fuel) {
+    where.push("l.fuel = ?");
+    params.push(q.fuel);
+  }
+  if (q.transmission) {
+    where.push("l.transmission LIKE ?");
+    params.push(`%${q.transmission}%`);
+  }
+  if (q.body) {
+    where.push("l.body_type LIKE ?");
+    params.push(`%${q.body}%`);
+  }
+  if (q.color) {
+    where.push("l.color = ?");
+    params.push(q.color);
+  }
+  if (q.maxMileage) {
+    where.push("l.mileage_km <= ?");
+    params.push(q.maxMileage);
+  }
   if (q.search) {
     where.push("(l.namemmt LIKE ? OR l.title LIKE ?)");
     const s = `%${q.search}%`;
@@ -179,6 +213,7 @@ export function listLatestListings(q: ListingsQuery = {}) {
     price_asc: "l.prc ASC NULLS LAST",
     year_desc: "l.yr4 DESC NULLS LAST, l.prc DESC",
     views_desc: "l.ipgvw DESC NULLS LAST",
+    mileage_asc: "l.mileage_km ASC NULLS LAST",
   }[q.sort ?? "year_desc"];
 
   const limit = Math.min(q.limit ?? 60, 200);
@@ -189,7 +224,10 @@ export function listLatestListings(q: ListingsQuery = {}) {
     ${LATEST_PER_SOURCE_CTE}
     SELECT l.cid, l.scraped_at, l.source, l.yr4, l.mk, l.md, l.prc,
            l.pcdisc, l.prvprc, l.namemmt, l.title, l.upd, l.ipgvw, l.img,
-           l.url, l.location, l.isnew, l.ishot, l.issold, l.isdp,
+           l.url, l.location, l.mileage_km, l.color, l.transmission,
+           l.fuel, l.body_type, l.seller_name, l.seller_type, l.condition,
+           l.detail_fetched_at,
+           l.isnew, l.ishot, l.issold, l.isdp,
            COALESCE(NULLIF(l.amake, ''),  m.name)  AS make_name,
            COALESCE(NULLIF(l.amodel, ''), md.name) AS model_name
     FROM listings l ${JOIN_LATEST}
@@ -242,6 +280,26 @@ export function allMakeNames(): string[] {
     .all();
   return rows.map((r) => r.name).filter(Boolean);
 }
+
+// --- facets for filter dropdowns ---------------------------------------
+
+function _distinctFacet(col: string): { value: string; n: number }[] {
+  return getDb()
+    .prepare<[], { value: string; n: number }>(
+      `${LATEST_PER_SOURCE_CTE}
+       SELECT ${col} AS value, COUNT(*) AS n
+       FROM listings l ${JOIN_LATEST}
+       WHERE ${col} IS NOT NULL AND ${col} != ''
+       GROUP BY ${col}
+       ORDER BY n DESC`,
+    )
+    .all();
+}
+
+export const fuelFacet = () => _distinctFacet("l.fuel");
+export const transmissionFacet = () => _distinctFacet("l.transmission");
+export const bodyFacet = () => _distinctFacet("l.body_type");
+export const colorFacet = () => _distinctFacet("l.color");
 
 export type ScrapeRun = {
   run_id: number;

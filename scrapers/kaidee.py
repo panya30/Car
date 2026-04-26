@@ -32,13 +32,13 @@ def _fetch_page(p: int) -> dict:
 
 
 def _normalise(ad: dict) -> dict:
-    """Map a kaidee ad object onto the shared `listings` schema."""
-    attrs = {a.get("key") or a.get("name"): a.get("value")
-             for a in (ad.get("attributes") or [])}
-    year = C.parse_int(attrs.get("year") or attrs.get("Year"))
-    make = attrs.get("brand") or attrs.get("Brand") or attrs.get("make")
-    model = attrs.get("model") or attrs.get("Model")
-    body = attrs.get("car_type") or attrs.get("body_type")
+    """Map a kaidee ad object onto the shared `listings` schema.
+
+    Kaidee's list-page JSON already carries every deep field we want under
+    ``autoInfo``: mileage, fuelType, transmission, carType, dealership,
+    submodel. We harvest all of it here so kaidee never needs a detail-page
+    enrichment pass.
+    """
     images = ad.get("image") or {}
     if isinstance(images, dict):
         img = images.get("default") or images.get("url")
@@ -52,18 +52,58 @@ def _normalise(ad: dict) -> dict:
     location = ad.get("location") or ""
     if isinstance(location, dict):
         location = location.get("name") or location.get("province") or ""
+
+    auto = ad.get("autoInfo") or {}
+    member = ad.get("member") or {}
+    gtm = (tracking.get("gtmData") or {})
+
+    make = auto.get("brand") or gtm.get("brand")
+    model = auto.get("model") or gtm.get("model")
+    submodel = auto.get("submodel")
+    body_type = auto.get("carType") or gtm.get("body_type")
+    mileage = C.parse_int(auto.get("mileage") or gtm.get("mileage"))
+    transmission = auto.get("transmission")
+    fuel = auto.get("fuelType")  # Thai-localised value
+    year = C.parse_int(auto.get("year") or gtm.get("year"))
+
+    # Color sometimes appears in imageAlt: "รถ Toyota Fortuner 3.0 V สี ขาว"
+    color = None
+    alt = ad.get("imageAlt") or ""
+    cm = re.search(r"สี\s+([^\s]+)", alt)
+    if cm:
+        color = cm.group(1).strip()
+
+    seller_name = ((auto.get("dealership") or {}).get("name")
+                   or member.get("name"))
+    seller_role = member.get("role") or ""
+    if seller_role.startswith("auto_owner"):
+        seller_type = "private"
+    elif seller_role.startswith("auto_dealer") or seller_role == "dealer":
+        seller_type = "dealer"
+    else:
+        seller_type = seller_role or None
+
     return {
         "cid": f"{SOURCE}:{detail_id}",
         "yr4": year,
         "amake": (make or "").upper() or None,
         "amodel": (model or "").upper() or None,
-        "abody": body,
+        "abody": body_type,
+        "atrim": submodel,
         "title": ad.get("title"),
         "namemmt": ad.get("title"),
         "prc": C.parse_int(ad.get("price")),
         "img": img,
-        "url": f"https://rod.kaidee.com/product/{detail_id}",
+        "url": f"https://rod.kaidee.com/product-{detail_id}",
         "location": location or None,
+        "mileage_km": mileage,
+        "color": color,
+        "transmission": transmission,
+        "fuel": fuel,
+        "body_type": body_type,
+        "seller_name": seller_name,
+        "seller_type": seller_type,
+        "condition": ad.get("conditionName"),
         "raw_json": json.dumps(ad, ensure_ascii=False, separators=(",", ":")),
     }
 
