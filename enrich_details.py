@@ -123,6 +123,13 @@ def main():
                     help="cap number of rows to enrich this run")
     ap.add_argument("--sleep", type=float, default=2.5,
                     help="seconds between requests")
+    ap.add_argument("--order-by", default="cid",
+                    choices=["cid", "views_desc", "year_desc", "price_desc"],
+                    help="row priority order")
+    ap.add_argument("--waf-cooldown", type=float, default=120,
+                    help="seconds to sleep after a WAF challenge")
+    ap.add_argument("--waf-giveup", type=int, default=20,
+                    help="abort after this many consecutive WAF blocks")
     ap.add_argument("--reenrich", action="store_true",
                     help="enrich rows even if detail_fetched_at is set")
     ap.add_argument("--latest-only", action="store_true", default=True,
@@ -132,22 +139,34 @@ def main():
     url_fn, enricher = SOURCES[args.source]
     init()
     conn = connect()
+    # Auto-commit each UPDATE so we don't hold a long write lock when
+    # another enricher process is running in parallel.
+    conn.isolation_level = None
+    conn.execute("PRAGMA wal_autocheckpoint=200")
 
     # Pick the latest snapshot per cid for this source. Skip rows that
     # already have a detail_fetched_at (unless --reenrich).
     where_unenriched = "" if args.reenrich else "AND l.detail_fetched_at IS NULL"
+    order_clause = {
+        "cid":         "l.cid",
+        "views_desc":  "l.ipgvw DESC NULLS LAST, l.cid",
+        "year_desc":   "l.yr4 DESC NULLS LAST, l.cid",
+        "price_desc":  "l.prc DESC NULLS LAST, l.cid",
+    }[args.order_by]
     sql = f"""
         WITH latest AS (
           SELECT cid, MAX(scraped_at) AS ts
           FROM listings WHERE source = ? GROUP BY cid
         )
         SELECT l.cid, l.scraped_at, l.url, l.yr4, l.amake, l.amodel,
-               l.atrim, l.abody, l.prc, l.prvprc, l.mileage_km, l.color,
-               l.transmission, l.fuel, l.body_type, l.seller_name,
-               l.seller_type, l.condition, l.location, l.ireg
+               l.atrim, l.abody, l.prc, l.prvprc, l.ipgvw,
+               l.mileage_km, l.color, l.transmission, l.fuel,
+               l.body_type, l.seller_name, l.seller_type, l.condition,
+               l.location, l.ireg
         FROM listings l
         JOIN latest lt ON lt.cid = l.cid AND lt.ts = l.scraped_at
         WHERE l.source = ? {where_unenriched}
+        ORDER BY {order_clause}
     """
     if args.limit:
         sql += f" LIMIT {args.limit}"
@@ -158,6 +177,7 @@ def main():
     now = _now()
     enriched = 0
     failed = 0
+    consecutive_waf = 0
     for i, r in enumerate(rows, 1):
         row = dict(r)
         row["scraped_at_orig"] = row.pop("scraped_at")
@@ -166,10 +186,28 @@ def main():
             continue
         try:
             html = C.http_get(url)
+            consecutive_waf = 0
+        except C.WAFBlocked:
+            consecutive_waf += 1
+            failed += 1
+            cooldown = args.waf_cooldown * min(consecutive_waf, 4)
+            print(f"  [{i}/{len(rows)}] {row['cid']} WAF #{consecutive_waf}; "
+                  f"sleeping {cooldown:.0f}s", flush=True)
+            if consecutive_waf >= args.waf_giveup:
+                print(f"  giving up after {consecutive_waf} consecutive WAF "
+                      f"challenges", flush=True)
+                break
+            time.sleep(cooldown)
+            try:
+                html = C.http_get(url)
+                consecutive_waf = 0
+            except Exception as e2:
+                print(f"  [{i}/{len(rows)}] {row['cid']} retry FAILED: {e2}", flush=True)
+                continue
         except Exception as e:
             failed += 1
             if failed <= 5 or failed % 25 == 0:
-                print(f"  [{i}/{len(rows)}] {row['cid']} fetch FAILED: {e}")
+                print(f"  [{i}/{len(rows)}] {row['cid']} fetch FAILED: {e}", flush=True)
             time.sleep(args.sleep + random.uniform(0, args.sleep * 0.4))
             continue
         try:
@@ -180,10 +218,8 @@ def main():
         conn.execute(UPDATE_SQL, _row_to_update(row, now))
         enriched += 1
         if enriched % 25 == 0:
-            conn.commit()
-            print(f"  {enriched}/{len(rows)} enriched (failed={failed})")
+            print(f"  {enriched}/{len(rows)} enriched (failed={failed})", flush=True)
         time.sleep(args.sleep + random.uniform(0, args.sleep * 0.3))
-    conn.commit()
     conn.close()
     print(f"DONE — enriched {enriched}, failed {failed}, skipped {len(rows)-enriched-failed}")
 
