@@ -1,21 +1,27 @@
 @import "tailwindcss";
 
+/* ============================================================
+   Theme tokens — light by default, dark via [data-theme="dark"]
+   ============================================================ */
+
 @theme {
-  /* macOS Sonoma-style colour tokens */
-  --color-accent:        #0A84FF;
-  --color-accent-soft:   rgba(10, 132, 255, 0.18);
-  --color-accent-hover:  #1f93ff;
-  --color-bg-window:     #1c1c1e;
-  --color-bg-page:       #0f0f12;
-  --color-sidebar:       rgba(34, 34, 38, 0.72);
-  --color-card:          rgba(255, 255, 255, 0.035);
-  --color-card-hover:    rgba(255, 255, 255, 0.06);
-  --color-border:        rgba(255, 255, 255, 0.06);
-  --color-border-strong: rgba(255, 255, 255, 0.10);
-  --color-separator:     rgba(255, 255, 255, 0.05);
-  --color-text:          rgba(255, 255, 255, 0.92);
-  --color-text-2:        rgba(255, 255, 255, 0.58);
-  --color-text-3:        rgba(255, 255, 255, 0.35);
+  --color-fg:        #1D1D1F;          /* primary text */
+  --color-fg-2:      #515156;          /* secondary text */
+  --color-fg-3:      #86868B;          /* tertiary / placeholder */
+  --color-bg:        #FBFBFD;          /* page background */
+  --color-surface:   #FFFFFF;          /* cards, fields */
+  --color-surface-2: #F5F5F7;          /* sidebar, hover, subdued */
+  --color-line:      rgba(0, 0, 0, 0.08);
+  --color-line-soft: rgba(0, 0, 0, 0.04);
+  --color-accent:    #0066CC;          /* macOS blue, light variant */
+  --color-accent-fg: #FFFFFF;
+
+  --color-pos:    #2C8056;
+  --color-pos-bg: #E5F4EC;
+  --color-warn:   #B25E12;
+  --color-warn-bg:#FBEFD9;
+  --color-neg:    #B6242C;
+  --color-neg-bg: #FAE4E5;
 
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
     "Inter", "Segoe UI", "Helvetica Neue", system-ui,
@@ -24,134 +30,118 @@
     "SF Pro Text", "Inter", system-ui, sans-serif;
   --font-mono: ui-monospace, "SF Mono", "Menlo", "Cascadia Code",
     "Roboto Mono", monospace;
-
-  --shadow-window: 0 32px 64px -12px rgba(0, 0, 0, 0.5),
-                   0  4px 16px      rgba(0, 0, 0, 0.25);
-  --shadow-card:   0  1px  2px rgba(0, 0, 0, 0.4),
-                   0  8px 24px -8px rgba(0, 0, 0, 0.4);
 }
 
-html {
-  color-scheme: dark;
+[data-theme="dark"] {
+  --color-fg:        #F5F5F7;
+  --color-fg-2:      rgba(245, 245, 247, 0.62);
+  --color-fg-3:      rgba(245, 245, 247, 0.38);
+  --color-bg:        #1A1A1C;
+  --color-surface:   #232326;
+  --color-surface-2: #2C2C2F;
+  --color-line:      rgba(255, 255, 255, 0.08);
+  --color-line-soft: rgba(255, 255, 255, 0.04);
+  --color-accent:    #0A84FF;
+  --color-accent-fg: #FFFFFF;
+
+  --color-pos:    #69D89E;
+  --color-pos-bg: rgba(105, 216, 158, 0.14);
+  --color-warn:   #FFB554;
+  --color-warn-bg:rgba(255, 181, 84, 0.14);
+  --color-neg:    #FF6973;
+  --color-neg-bg: rgba(255, 105, 115, 0.14);
 }
+
+html { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
 
 body {
-  background:
-    radial-gradient(120% 80% at 0% 0%, rgba(10, 132, 255, 0.05) 0%, transparent 55%),
-    radial-gradient(100% 100% at 100% 100%, rgba(255, 80, 200, 0.03) 0%, transparent 60%),
-    #0e0e11;
-  color: var(--color-text);
+  background: var(--color-bg);
+  color: var(--color-fg);
   font-family: var(--font-sans);
-  font-feature-settings: "cv11" 1, "ss01" 1, "ss03" 1, "tnum" 1;
+  font-size: 14px;
+  line-height: 1.5;
+  font-feature-settings: "cv11" 1, "ss01" 1, "tnum" 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  letter-spacing: -0.003em;
+  letter-spacing: -0.005em;
   text-rendering: optimizeLegibility;
 }
 
 ::selection {
-  background: rgba(10, 132, 255, 0.35);
-  color: #fff;
+  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
 }
 
-/* macOS-style scrollbar */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+/* ============================================================
+   Surfaces — flat, no decoration; depth via subtle borders
+   ============================================================ */
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
 }
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  border: 2px solid transparent;
-  background-clip: padding-box;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.16);
-  background-clip: padding-box;
-  border: 2px solid transparent;
+.surface-2 {
+  background: var(--color-surface-2);
+  border-radius: 10px;
 }
 
-/* Sidebar source-list item active state */
-.sidebar-item-active {
-  background: rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.08);
-}
-.sidebar-item-active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 4px;
-  bottom: 4px;
-  width: 3px;
-  background: var(--color-accent);
-  border-radius: 0 2px 2px 0;
-}
+/* ============================================================
+   Form controls
+   ============================================================ */
 
-/* Vibrancy card (frosted-glass surface) */
-.vibrancy {
-  background: rgba(255, 255, 255, 0.035);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 1px 2px rgba(0, 0, 0, 0.3);
+.field {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 7px;
+  color: var(--color-fg);
+  font-size: 13px;
+  padding: 6px 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-sans);
 }
-
-/* Inset textfield (Mac-style) */
-.macfield {
-  background: rgba(0, 0, 0, 0.35);
-  border: 0.5px solid rgba(255, 255, 255, 0.10);
-  border-radius: 6px;
-  box-shadow:
-    inset 0 1px 1px rgba(0, 0, 0, 0.3),
-    0 0 0 0 rgba(10, 132, 255, 0.0);
-  transition: box-shadow 0.15s ease, border-color 0.15s ease;
-  color: var(--color-text);
-}
-.macfield:focus,
-.macfield:focus-visible {
+.field:focus,
+.field:focus-visible {
   outline: none;
-  border-color: rgba(10, 132, 255, 0.7);
-  box-shadow:
-    inset 0 1px 1px rgba(0, 0, 0, 0.3),
-    0 0 0 3px rgba(10, 132, 255, 0.25);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
+.field::placeholder { color: var(--color-fg-3); }
 
-/* Pill button — Mac-style raised */
-.btn-mac {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
-  border: 0.5px solid rgba(255, 255, 255, 0.12);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    0 1px 2px rgba(0, 0, 0, 0.3);
+/* Buttons */
+.btn {
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
   border-radius: 7px;
-  transition: filter 0.12s ease, transform 0.06s ease;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
 }
-.btn-mac:hover { filter: brightness(1.15); }
-.btn-mac:active { transform: translateY(0.5px); filter: brightness(0.95); }
-
-.btn-mac-primary {
-  background: linear-gradient(180deg, #2599ff, #0a84ff);
-  border: 0.5px solid rgba(0, 0, 0, 0.2);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 1px 2px rgba(0, 0, 0, 0.4),
-    0 0 0 0.5px rgba(10, 132, 255, 0.4);
-  color: #fff;
+.btn:hover {
+  background: color-mix(in srgb, var(--color-fg) 6%, var(--color-surface-2));
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border: 1px solid transparent;
   border-radius: 7px;
-  transition: filter 0.12s ease, transform 0.06s ease;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.12s ease;
 }
-.btn-mac-primary:hover { filter: brightness(1.1); }
-.btn-mac-primary:active { transform: translateY(0.5px); filter: brightness(0.95); }
+.btn-primary:hover { filter: brightness(1.07); }
+.btn-primary:active { filter: brightness(0.95); }
 
-/* Segmented control (TH/EN, filter pills) */
+/* Segmented control */
 .segmented {
-  background: rgba(255, 255, 255, 0.06);
-  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
   border-radius: 7px;
   padding: 1.5px;
   display: inline-flex;
@@ -162,36 +152,88 @@ body {
   border-radius: 5px;
   font-size: 11px;
   font-weight: 500;
-  letter-spacing: 0.05em;
-  color: var(--color-text-2);
+  letter-spacing: 0.04em;
+  color: var(--color-fg-2);
   transition: background 0.15s ease, color 0.15s ease;
 }
 .segmented > .seg-active {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  box-shadow:
-    inset 0 0.5px 0 rgba(255, 255, 255, 0.15),
-    0 1px 2px rgba(0, 0, 0, 0.25);
+  background: var(--color-surface);
+  color: var(--color-fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .segmented > .seg-active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Subtle rule */
-.hairline {
-  height: 0.5px;
-  background: rgba(255, 255, 255, 0.06);
-}
+/* ============================================================
+   Sidebar / toolbar
+   ============================================================ */
 
-/* Toolbar bar */
-.toolbar {
-  background: rgba(28, 28, 30, 0.7);
-  backdrop-filter: saturate(180%) blur(28px);
-  -webkit-backdrop-filter: saturate(180%) blur(28px);
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
-}
-
-/* Sidebar frame */
 .sidebar {
-  background: rgba(34, 34, 38, 0.6);
-  backdrop-filter: saturate(180%) blur(22px);
-  -webkit-backdrop-filter: saturate(180%) blur(22px);
-  border-right: 0.5px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-surface-2);
+  border-right: 1px solid var(--color-line);
 }
+.toolbar {
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.sidebar-item-active {
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+[data-theme="dark"] .sidebar-item-active {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+/* ============================================================
+   Hairline rule
+   ============================================================ */
+
+.hairline { height: 1px; background: var(--color-line); }
+.hairline-soft { height: 1px; background: var(--color-line-soft); }
+
+/* ============================================================
+   Scrollbar — minimal overlay
+   ============================================================ */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-fg) 18%, transparent);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-fg) 30%, transparent);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* ============================================================
+   Status pills
+   ============================================================ */
+
+.pill-pos {
+  background: var(--color-pos-bg); color: var(--color-pos);
+}
+.pill-warn {
+  background: var(--color-warn-bg); color: var(--color-warn);
+}
+.pill-neg {
+  background: var(--color-neg-bg); color: var(--color-neg);
+}
+.pill-neutral {
+  background: var(--color-surface-2); color: var(--color-fg-2);
+}
+
+/* ============================================================
+   Disclosure summary marker — keep it minimal
+   ============================================================ */
+
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }

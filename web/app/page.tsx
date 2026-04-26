@@ -27,9 +27,9 @@ export default async function Home() {
         <h1 className="text-3xl font-semibold tracking-tight" style={{fontFamily:"var(--font-display)"}}>
           {tr(loc, "overview_title")}
         </h1>
-        <p className="text-sm text-[color:var(--color-text-2)] mt-1">
+        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
           {tr(loc, "overview_latest")}{" "}
-          <time className="text-[color:var(--color-text)]">{fmtTs(t.ts)}</time>
+          <time className="text-[color:var(--color-fg)]">{fmtTs(t.ts)}</time>
         </p>
       </section>
 
@@ -45,10 +45,10 @@ export default async function Home() {
           <Link
             key={s.source}
             href={`/listings?source=${encodeURIComponent(s.source)}`}
-            className="px-3 py-1.5 rounded-md vibrancy hover:bg-white/[0.06] transition-colors"
+            className="px-3 py-1.5 rounded-md surface hover:bg-[color:var(--color-surface-2)] transition-colors"
           >
-            <span className="text-[color:var(--color-text)] mr-2 font-medium">{s.source}</span>
-            <span className="text-[color:var(--color-text-3)] tabular-nums text-xs">
+            <span className="text-[color:var(--color-fg)] mr-2 font-medium">{s.source}</span>
+            <span className="text-[color:var(--color-fg-3)] tabular-nums text-xs">
               {s.n.toLocaleString()}
             </span>
           </Link>
@@ -59,7 +59,7 @@ export default async function Home() {
         <Card title={tr(loc, "card_top_makes")}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-white/40 text-xs uppercase tracking-wide">
+              <tr className="text-[color:var(--color-fg-3)] text-xs uppercase tracking-wide">
                 <th className="text-left font-medium pb-2">{tr(loc, "th_make")}</th>
                 <th className="text-right font-medium pb-2">{tr(loc, "th_n")}</th>
                 <th className="text-right font-medium pb-2">{tr(loc, "th_avg_price")}</th>
@@ -69,22 +69,22 @@ export default async function Home() {
             </thead>
             <tbody>
               {makes.map((m) => (
-                <tr key={m.make} className="border-t border-white/5">
+                <tr key={m.make} className="border-t border-[color:var(--color-line)]">
                   <td className="py-2">
                     <Link
                       href={`/listings?make=${encodeURIComponent(m.make ?? "")}`}
-                      className="text-white/90 hover:text-[#3ba3ff]"
+                      className="text-[color:var(--color-fg)] hover:text-[color:var(--color-accent)]"
                     >
                       {m.make ?? "(unknown)"}
                     </Link>
                   </td>
-                  <td className="text-right tabular-nums text-white/80">
+                  <td className="text-right tabular-nums text-[color:var(--color-fg)]">
                     {m.n.toLocaleString()}
                   </td>
-                  <td className="text-right tabular-nums text-white/70">
+                  <td className="text-right tabular-nums text-[color:var(--color-fg-2)]">
                     {fmtPrice(m.avg_p)}
                   </td>
-                  <td className="text-right tabular-nums text-white/40 text-xs">
+                  <td className="text-right tabular-nums text-[color:var(--color-fg-3)] text-xs">
                     {fmtPrice(m.min_p)}–{fmtPrice(m.max_p)}
                   </td>
                   <td className="pl-3 w-28">
@@ -100,11 +100,11 @@ export default async function Home() {
           <div className="space-y-1.5">
             {years.map((y) => (
               <div key={y.yr4} className="flex items-center gap-3 text-sm">
-                <span className="w-12 text-white/50 tabular-nums">{y.yr4}</span>
+                <span className="w-12 text-[color:var(--color-fg-2)] tabular-nums">{y.yr4}</span>
                 <div className="flex-1">
                   <Bar pct={y.n / maxYearN} />
                 </div>
-                <span className="w-14 text-right tabular-nums text-white/80">
+                <span className="w-14 text-right tabular-nums text-[color:var(--color-fg)]">
                   {y.n.toLocaleString()}
                 </span>
               </div>
@@ -117,7 +117,7 @@ export default async function Home() {
         <Card title={tr(loc, "card_recent_runs")}>
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-white/40 text-xs uppercase tracking-wide">
+              <tr className="text-[color:var(--color-fg-3)] text-xs uppercase tracking-wide">
                 <th className="text-left font-medium pb-2">#</th>
                 <th className="text-left font-medium pb-2">Started</th>
                 <th className="text-right font-medium pb-2">Queries</th>
@@ -128,21 +128,21 @@ export default async function Home() {
             </thead>
             <tbody>
               {runs.map((r) => (
-                <tr key={r.run_id} className="border-t border-white/5">
-                  <td className="py-2 text-white/40 tabular-nums">#{r.run_id}</td>
-                  <td className="text-white/80 tabular-nums text-xs">
+                <tr key={r.run_id} className="border-t border-[color:var(--color-line)]">
+                  <td className="py-2 text-[color:var(--color-fg-3)] tabular-nums">#{r.run_id}</td>
+                  <td className="text-[color:var(--color-fg)] tabular-nums text-xs">
                     {fmtTs(r.started_at)}
                   </td>
-                  <td className="text-right tabular-nums text-white/70">
+                  <td className="text-right tabular-nums text-[color:var(--color-fg-2)]">
                     {r.queries_run ?? "-"}
                   </td>
-                  <td className="text-right tabular-nums text-white/70">
+                  <td className="text-right tabular-nums text-[color:var(--color-fg-2)]">
                     {r.cars_unique?.toLocaleString() ?? "-"}
                   </td>
                   <td className="pl-3">
                     <Status status={r.status} />
                   </td>
-                  <td className="pl-3 text-white/40 text-xs">{r.note ?? ""}</td>
+                  <td className="pl-3 text-[color:var(--color-fg-3)] text-xs">{r.note ?? ""}</td>
                 </tr>
               ))}
             </tbody>
@@ -155,8 +155,8 @@ export default async function Home() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="vibrancy rounded-xl p-4">
-      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[color:var(--color-text-3)]">
+    <div className="surface rounded-xl p-4">
+      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[color:var(--color-fg-3)]">
         {label}
       </div>
       <div className="text-2xl font-semibold tabular-nums mt-1 tracking-tight">
@@ -168,8 +168,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="vibrancy rounded-xl p-5">
-      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-text-3)] mb-3">
+    <div className="surface rounded-xl p-5">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-fg-3)] mb-3">
         {title}
       </h2>
       {children}
@@ -179,7 +179,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function Bar({ pct }: { pct: number }) {
   return (
-    <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+    <div className="h-1.5 bg-[color:var(--color-surface-2)] rounded-full overflow-hidden">
       <div
         className="h-full rounded-full"
         style={{
@@ -193,15 +193,14 @@ function Bar({ pct }: { pct: number }) {
 }
 
 function Status({ status }: { status: string | null }) {
-  const colors: Record<string, string> = {
-    ok: "bg-emerald-500/15 text-emerald-300",
-    running: "bg-amber-500/15 text-amber-300",
-    error: "bg-rose-500/15 text-rose-300",
-    interrupted: "bg-orange-500/15 text-orange-300",
-  };
-  const cls = colors[status ?? ""] ?? "bg-white/10 text-white/60";
+  const cls =
+    status === "ok"            ? "pill-pos"
+    : status === "running"     ? "pill-warn"
+    : status === "error"       ? "pill-neg"
+    : status === "interrupted" ? "pill-warn"
+    :                            "pill-neutral";
   return (
-    <span className={`inline-block px-2 py-0.5 rounded text-xs ${cls}`}>
+    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium ${cls}`}>
       {status ?? "?"}
     </span>
   );
@@ -209,7 +208,7 @@ function Status({ status }: { status: string | null }) {
 
 function Empty({ msg }: { msg: string }) {
   return (
-    <div className="text-center py-24 text-white/50">
+    <div className="text-center py-24 text-[color:var(--color-fg-2)]">
       <p className="text-sm">{msg}</p>
     </div>
   );

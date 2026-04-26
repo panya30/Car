@@ -39,7 +39,7 @@ export default async function ListingsPage({
 }) {
   const loc = await getLocale();
   if (!dbExists()) {
-    return <p className="text-white/50">{tr(loc, "no_data")}</p>;
+    return <p className="text-[color:var(--color-fg-2)]">{tr(loc, "no_data")}</p>;
   }
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
@@ -80,7 +80,7 @@ export default async function ListingsPage({
         >
           {tr(loc, "listings_title")}
         </h1>
-        <p className="text-sm text-[color:var(--color-text-2)] mt-1">
+        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
           {total.toLocaleString()} {tr(loc, "listings_count_one")} ·{" "}
           {tr(loc, "page_of")} {page} {tr(loc, "of")} {totalPages}
         </p>
@@ -94,7 +94,7 @@ export default async function ListingsPage({
         <select
           name="source"
           defaultValue={sp.source ?? ""}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "all_sources")}</option>
           {sources.map((s) => (
@@ -106,7 +106,7 @@ export default async function ListingsPage({
         <select
           name="make"
           defaultValue={sp.make ?? ""}
-          className="macfield px-2.5 py-2 text-[13px] col-span-2"
+          className="field px-2.5 py-2 text-[13px] col-span-2"
         >
           <option value="">{tr(loc, "all_makes")}</option>
           {makes.map((m) => (
@@ -120,26 +120,26 @@ export default async function ListingsPage({
           defaultValue={sp.year ?? ""}
           placeholder={tr(loc, "placeholder_year")}
           inputMode="numeric"
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         />
         <input
           name="min"
           defaultValue={sp.min ?? ""}
           placeholder={tr(loc, "placeholder_min")}
           inputMode="numeric"
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         />
         <input
           name="max"
           defaultValue={sp.max ?? ""}
           placeholder={tr(loc, "placeholder_max")}
           inputMode="numeric"
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         />
         <select
           name="sort"
           defaultValue={sp.sort ?? "year_desc"}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="year_desc">{tr(loc, "sort_year_desc")}</option>
           <option value="price_desc">{tr(loc, "sort_price_desc")}</option>
@@ -150,7 +150,7 @@ export default async function ListingsPage({
         <select
           name="fuel"
           defaultValue={sp.fuel ?? ""}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_fuel")}</option>
           {fuels.map((f) => (
@@ -162,7 +162,7 @@ export default async function ListingsPage({
         <select
           name="trans"
           defaultValue={sp.trans ?? ""}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_transmission")}</option>
           {transmissions.map((t) => (
@@ -174,7 +174,7 @@ export default async function ListingsPage({
         <select
           name="body"
           defaultValue={sp.body ?? ""}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_body")}</option>
           {bodies.map((b) => (
@@ -186,7 +186,7 @@ export default async function ListingsPage({
         <select
           name="color"
           defaultValue={sp.color ?? ""}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_color")}</option>
           {colors.map((c) => (
@@ -200,17 +200,17 @@ export default async function ListingsPage({
           defaultValue={sp.maxkm ?? ""}
           placeholder={tr(loc, "placeholder_max_km")}
           inputMode="numeric"
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         />
         <input
           name="q"
           defaultValue={sp.q ?? ""}
           placeholder={tr(loc, "placeholder_search")}
-          className="macfield px-2.5 py-2 text-[13px] col-span-3 md:col-span-5"
+          className="field px-2.5 py-2 text-[13px] col-span-3 md:col-span-5"
         />
         <button
           type="submit"
-          className="btn-mac-primary px-4 text-[13px] font-medium"
+          className="btn-primary px-4 text-[13px] font-medium"
         >
           {tr(loc, "btn_filter")}
         </button>
@@ -230,7 +230,7 @@ export default async function ListingsPage({
               href={cdHref}
               target="_blank"
               rel="noreferrer"
-              className="group vibrancy rounded-xl hover:bg-white/[0.06] transition-colors overflow-hidden"
+              className="group surface rounded-xl hover:bg-[color:var(--color-surface-2)] transition-colors overflow-hidden"
             >
               {r.img && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -243,11 +243,11 @@ export default async function ListingsPage({
               )}
               <div className="p-3">
                 <div className="flex items-baseline justify-between gap-2">
-                  <div className="font-medium text-white/90 truncate">
+                  <div className="font-medium text-[color:var(--color-fg)] truncate">
                     {titleParts.join(" ") || r.namemmt}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[10px] uppercase tracking-wide text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] uppercase tracking-wide text-[color:var(--color-fg-3)] bg-[color:var(--color-surface-2)] px-1.5 py-0.5 rounded">
                       {r.source}
                     </span>
                     {r.ishot === "Y" && (
@@ -257,14 +257,14 @@ export default async function ListingsPage({
                     )}
                   </div>
                 </div>
-                <div className="text-xs text-white/50 truncate mt-0.5">
+                <div className="text-xs text-[color:var(--color-fg-2)] truncate mt-0.5">
                   {r.title || r.namemmt}
                 </div>
                 <div className="mt-2 flex items-baseline justify-between">
-                  <div className="text-lg font-semibold tabular-nums text-[#3ba3ff]">
+                  <div className="text-lg font-semibold tabular-nums text-[color:var(--color-accent)]">
                     {r.prc != null ? `฿${r.prc.toLocaleString()}` : "—"}
                   </div>
-                  <div className="text-xs text-white/40 tabular-nums">
+                  <div className="text-xs text-[color:var(--color-fg-3)] tabular-nums">
                     {r.mileage_km != null
                       ? `${r.mileage_km.toLocaleString()} km`
                       : r.ipgvw != null
@@ -277,7 +277,7 @@ export default async function ListingsPage({
                     was ฿{r.prvprc} · {r.pcdisc != null ? `-${r.pcdisc}%` : ""}
                   </div>
                 )}
-                <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-white/45">
+                <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-[color:var(--color-fg-2)]">
                   {r.fuel && <Spec label={r.fuel} />}
                   {r.transmission && (
                     <Spec
@@ -292,7 +292,7 @@ export default async function ListingsPage({
                   {r.color && <Spec label={r.color} accent />}
                 </div>
                 {(r.seller_name || r.location) && (
-                  <div className="mt-1.5 text-[11px] text-white/35 truncate">
+                  <div className="mt-1.5 text-[11px] text-[color:var(--color-fg-3)] truncate">
                     {[r.seller_name, r.location].filter(Boolean).join(" · ")}
                   </div>
                 )}
@@ -303,7 +303,7 @@ export default async function ListingsPage({
       </div>
 
       {rows.length === 0 && (
-        <p className="text-white/40 text-sm">{tr(loc, "no_matches")}</p>
+        <p className="text-[color:var(--color-fg-3)] text-sm">{tr(loc, "no_matches")}</p>
       )}
 
       <Pagination
@@ -322,7 +322,7 @@ function Spec({ label, accent = false }: { label: string; accent?: boolean }) {
   return (
     <span
       className={`px-1.5 py-0.5 rounded ${
-        accent ? "bg-[#3ba3ff]/15 text-[#9ed1ff]" : "bg-white/5"
+        accent ? "bg-[color:var(--color-pos-bg)] text-[color:var(--color-accent)]" : "bg-[color:var(--color-surface-2)]"
       }`}
     >
       {label}
@@ -356,14 +356,14 @@ function Pagination({
   };
   return (
     <div className="flex items-center justify-between text-sm pt-4">
-      <div className="text-white/40">
+      <div className="text-[color:var(--color-fg-3)]">
         {pageLabel} {current} / {total}
       </div>
       <div className="flex gap-2">
         {current > 1 && (
           <Link
             href={pageHref(current - 1)}
-            className="px-3 py-1.5 border border-white/10 rounded hover:bg-white/5"
+            className="px-3 py-1.5 border border-[color:var(--color-line)] rounded hover:bg-[color:var(--color-surface-2)]"
           >
             {prevLabel}
           </Link>
@@ -371,7 +371,7 @@ function Pagination({
         {current < total && (
           <Link
             href={pageHref(current + 1)}
-            className="px-3 py-1.5 border border-white/10 rounded hover:bg-white/5"
+            className="px-3 py-1.5 border border-[color:var(--color-line)] rounded hover:bg-[color:var(--color-surface-2)]"
           >
             {nextLabel}
           </Link>

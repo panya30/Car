@@ -4,9 +4,9 @@ import { getLocale, t as tr, type Locale } from "@/lib/i18n";
 export const dynamic = "force-dynamic";
 
 const SEVERITY: Record<string, string> = {
-  red:  "bg-rose-500/15 text-rose-300 border-rose-500/30",
-  warn: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-  info: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  red:  "bg-rose-500/15 text-[color:var(--color-neg)] border-rose-500/30",
+  warn: "bg-amber-500/15 text-[color:var(--color-warn)] border-amber-500/30",
+  info: "bg-emerald-500/15 text-[color:var(--color-pos)] border-emerald-500/30",
 };
 
 const KIND_ICON: Record<string, string> = {
@@ -29,12 +29,12 @@ export default async function AlertsPage() {
         >
           {tr(loc, "alerts_title")}
         </h1>
-        <p className="text-sm text-white/50 mt-1">
+        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
           {tr(loc, "alerts_intro")}{" "}
-          <code className="text-white/70">python line_alerts.py</code>{" "}
+          <code className="text-[color:var(--color-fg-2)]">python line_alerts.py</code>{" "}
           {tr(loc, "alerts_intro_after")}{" "}
-          <code className="text-white/70">LINE_CHANNEL_ACCESS_TOKEN</code> +{" "}
-          <code className="text-white/70">LINE_TARGET_USER_ID</code>.
+          <code className="text-[color:var(--color-fg-2)]">LINE_CHANNEL_ACCESS_TOKEN</code> +{" "}
+          <code className="text-[color:var(--color-fg-2)]">LINE_TARGET_USER_ID</code>.
         </p>
       </header>
 
@@ -53,9 +53,9 @@ export default async function AlertsPage() {
 
       <div className="space-y-2">
         {alerts.length === 0 && (
-          <p className="text-white/40 text-sm">
+          <p className="text-[color:var(--color-fg-3)] text-sm">
             {tr(loc, "alerts_empty")}{" "}
-            <code className="text-white/70">python regenerate_stories.py</code>{" "}
+            <code className="text-[color:var(--color-fg-2)]">python regenerate_stories.py</code>{" "}
             {tr(loc, "alerts_to_generate")}
           </p>
         )}
@@ -69,8 +69,8 @@ export default async function AlertsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="vibrancy rounded-xl p-4">
-      <div className="text-xs uppercase tracking-wide text-white/40">{label}</div>
+    <div className="surface rounded-xl p-4">
+      <div className="text-xs uppercase tracking-wide text-[color:var(--color-fg-3)]">{label}</div>
       <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -83,7 +83,7 @@ function AlertRow({ alert: a, loc }: { alert: Alert; loc: Locale }) {
   const url = payload?.deal?.url;
   return (
     <div
-      className={`vibrancy rounded-xl p-4 ${cls.replace("text-", "")}`}
+      className={`surface rounded-xl p-4 ${cls.replace("text-", "")}`}
       style={{ borderColor: cls.includes("rose") ? "rgba(244,63,94,.3)" :
                             cls.includes("amber") ? "rgba(245,158,11,.3)" :
                             "rgba(16,185,129,.3)" }}
@@ -94,23 +94,23 @@ function AlertRow({ alert: a, loc }: { alert: Alert; loc: Locale }) {
         >
           {icon} {a.kind}
         </span>
-        <span className="text-white/90 font-medium flex-1">{a.title}</span>
-        <span className="text-[11px] text-white/40 tabular-nums">
+        <span className="text-[color:var(--color-fg)] font-medium flex-1">{a.title}</span>
+        <span className="text-[11px] text-[color:var(--color-fg-3)] tabular-nums">
           {new Date(a.created_at).toLocaleString(
             loc === "th" ? "th-TH" : "en-GB",
           )}
         </span>
         {a.notified_at && (
-          <span className="text-[10px] text-emerald-400/70">
+          <span className="text-[10px] text-[color:var(--color-pos)]">
             📲 {tr(loc, "alert_pushed_label")}
           </span>
         )}
       </div>
       {a.detail && (
-        <p className="mt-2 text-sm text-white/65 leading-relaxed">{a.detail}</p>
+        <p className="mt-2 text-sm text-[color:var(--color-fg-2)] leading-relaxed">{a.detail}</p>
       )}
       {payload?.deal && (
-        <div className="mt-2 text-xs text-white/45 flex items-baseline gap-3 flex-wrap">
+        <div className="mt-2 text-xs text-[color:var(--color-fg-2)] flex items-baseline gap-3 flex-wrap">
           <span className="tabular-nums">฿{(payload.deal.prc ?? 0).toLocaleString()}</span>
           {payload.deal.mileage_km && (
             <span className="tabular-nums">
@@ -124,7 +124,7 @@ function AlertRow({ alert: a, loc }: { alert: Alert; loc: Locale }) {
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="ml-auto text-[#3ba3ff] hover:underline"
+              className="ml-auto text-[color:var(--color-accent)] hover:underline"
             >
               view listing →
             </a>

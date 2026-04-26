@@ -42,14 +42,14 @@ export default async function MatchesPage({
         >
           {tr(loc, "matches_title")}
         </h1>
-        <p className="text-sm text-white/50 mt-1">
+        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
           {tr(loc, "matches_intro")}
-          <code className="text-white/70">
+          <code className="text-[color:var(--color-fg-2)]">
             (make, model, year, ฿50k, 20k-km)
           </code>
           {tr(loc, "matches_intro_continued")}
           {summary.computedAt && (
-            <span className="block text-[11px] mt-1 text-white/30">
+            <span className="block text-[11px] mt-1 text-[color:var(--color-fg-3)]">
               {tr(loc, "matches_computed_at")}{" "}
               {new Date(summary.computedAt).toLocaleString(
                 loc === "th" ? "th-TH" : "en-GB",
@@ -88,7 +88,7 @@ export default async function MatchesPage({
         <select
           name="sources"
           defaultValue={String(minSources)}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="1">{tr(loc, "filter_all_groups")}</option>
           <option value="2">{tr(loc, "filter_cross_source")}</option>
@@ -97,7 +97,7 @@ export default async function MatchesPage({
         <select
           name="spread"
           defaultValue={String(minSpread)}
-          className="macfield px-2.5 py-2 text-[13px]"
+          className="field px-2.5 py-2 text-[13px]"
         >
           <option value="0">{tr(loc, "filter_any_spread")}</option>
           <option value="5">{tr(loc, "filter_spread_5")}</option>
@@ -106,7 +106,7 @@ export default async function MatchesPage({
         </select>
         <button
           type="submit"
-          className="btn-mac-primary px-4 text-[13px] font-medium"
+          className="btn-primary px-4 text-[13px] font-medium"
         >
           {tr(loc, "btn_filter")}
         </button>
@@ -122,7 +122,7 @@ export default async function MatchesPage({
           />
         ))}
         {groups.length === 0 && (
-          <p className="text-white/40 text-sm">{tr(loc, "matches_no_results")}</p>
+          <p className="text-[color:var(--color-fg-3)] text-sm">{tr(loc, "matches_no_results")}</p>
         )}
       </div>
     </div>
@@ -131,8 +131,8 @@ export default async function MatchesPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="vibrancy rounded-xl p-4">
-      <div className="text-xs uppercase tracking-wide text-white/40">{label}</div>
+    <div className="surface rounded-xl p-4">
+      <div className="text-xs uppercase tracking-wide text-[color:var(--color-fg-3)]">{label}</div>
       <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -151,26 +151,26 @@ function MatchRow({
 
   const spreadColor =
     group.spread_pct >= 15
-      ? "text-emerald-300"
+      ? "text-[color:var(--color-pos)]"
       : group.spread_pct >= 8
-        ? "text-amber-300"
-        : "text-white/60";
+        ? "text-[color:var(--color-warn)]"
+        : "text-[color:var(--color-fg-2)]";
 
   return (
-    <div className="vibrancy rounded-xl">
+    <div className="surface rounded-xl">
       <Link
         href={
           expanded
             ? `/matches`
             : `/matches?expand=${encodeURIComponent(group.group_id)}`
         }
-        className="block p-4 hover:bg-white/[0.03] transition"
+        className="block p-4 hover:bg-[color:var(--color-surface)] transition"
       >
         <div className="flex items-baseline gap-3 flex-wrap">
-          <span className="font-medium text-white/90">
+          <span className="font-medium text-[color:var(--color-fg)]">
             {group.yr4} {group.make} {group.model}
           </span>
-          <span className="text-xs text-white/40 tabular-nums">
+          <span className="text-xs text-[color:var(--color-fg-3)] tabular-nums">
             n={group.n_listings} · {group.n_sources}{" "}
             {tr(
               loc,
@@ -180,7 +180,7 @@ function MatchRow({
             )}
           </span>
           <span className="ml-auto flex items-baseline gap-3">
-            <span className="text-sm tabular-nums text-white/70">
+            <span className="text-sm tabular-nums text-[color:var(--color-fg-2)]">
               {fmtBaht(group.cheapest_prc)} → {fmtBaht(group.dearest_prc)}
             </span>
             <span className={`text-sm font-semibold tabular-nums ${spreadColor}`}>
@@ -188,13 +188,13 @@ function MatchRow({
             </span>
           </span>
         </div>
-        <div className="text-[11px] text-white/30 mt-1 font-mono">
+        <div className="text-[11px] text-[color:var(--color-fg-3)] mt-1 font-mono">
           {group.group_id}
         </div>
       </Link>
 
       {expanded && (
-        <div className="border-t border-white/5 p-4 space-y-2">
+        <div className="border-t border-[color:var(--color-line)] p-4 space-y-2">
           {listings.map((l) => {
             const url =
               l.url ??
@@ -203,26 +203,26 @@ function MatchRow({
                 : "#");
             const deltaColor =
               l.delta_pct === 0
-                ? "text-emerald-300"
+                ? "text-[color:var(--color-pos)]"
                 : l.delta_pct >= 10
-                  ? "text-rose-300"
-                  : "text-amber-300";
+                  ? "text-[color:var(--color-neg)]"
+                  : "text-[color:var(--color-warn)]";
             return (
               <a
                 key={l.cid}
                 href={url}
                 target="_blank"
                 rel="noreferrer"
-                className="block rounded px-3 py-2 hover:bg-white/[0.03] text-sm"
+                className="block rounded px-3 py-2 hover:bg-[color:var(--color-surface)] text-sm"
               >
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-[10px] uppercase tracking-wider text-white/40 bg-white/5 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-fg-3)] bg-[color:var(--color-surface-2)] px-1.5 py-0.5 rounded">
                     {l.source}
                   </span>
-                  <span className="text-white/85 truncate flex-1">
+                  <span className="text-[color:var(--color-fg)] truncate flex-1">
                     {l.title ?? l.cid}
                   </span>
-                  <span className="font-semibold tabular-nums text-[#3ba3ff]">
+                  <span className="font-semibold tabular-nums text-[color:var(--color-accent)]">
                     {fmtBaht(l.prc)}
                   </span>
                   <span className={`tabular-nums w-16 text-right ${deltaColor}`}>
@@ -231,7 +231,7 @@ function MatchRow({
                       : `+${l.delta_pct.toFixed(0)}%`}
                   </span>
                 </div>
-                <div className="text-[11px] text-white/35 mt-0.5">
+                <div className="text-[11px] text-[color:var(--color-fg-3)] mt-0.5">
                   cid {l.cid}
                   {l.mileage_km != null && (
                     <> · {l.mileage_km.toLocaleString()} km</>

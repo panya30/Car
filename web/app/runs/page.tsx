@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export default async function RunsPage() {
   const loc = await getLocale();
   if (!dbExists()) {
-    return <p className="text-white/50">{tr(loc, "no_data")}</p>;
+    return <p className="text-[color:var(--color-fg-2)]">{tr(loc, "no_data")}</p>;
   }
   const runs = listRuns(100);
   return (
@@ -19,7 +19,7 @@ export default async function RunsPage() {
       </h1>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-white/40 text-xs uppercase tracking-wide">
+          <tr className="text-[color:var(--color-fg-3)] text-xs uppercase tracking-wide">
             <th className="text-left font-medium pb-2">{tr(loc, "th_run")}</th>
             <th className="text-left font-medium pb-2">{tr(loc, "th_started")}</th>
             <th className="text-left font-medium pb-2">{tr(loc, "th_finished")}</th>
@@ -44,40 +44,40 @@ export default async function RunsPage() {
                   )
                 : null;
             return (
-              <tr key={r.run_id} className="border-t border-white/5 align-top">
-                <td className="py-2 text-white/40 tabular-nums">#{r.run_id}</td>
-                <td className="text-white/80 tabular-nums text-xs">
+              <tr key={r.run_id} className="border-t border-[color:var(--color-line)] align-top">
+                <td className="py-2 text-[color:var(--color-fg-3)] tabular-nums">#{r.run_id}</td>
+                <td className="text-[color:var(--color-fg)] tabular-nums text-xs">
                   {r.started_at}
                 </td>
-                <td className="text-white/60 tabular-nums text-xs">
+                <td className="text-[color:var(--color-fg-2)] tabular-nums text-xs">
                   {r.finished_at ?? "…"}
                   {dur != null && (
-                    <span className="text-white/30 ml-2">({dur}s)</span>
+                    <span className="text-[color:var(--color-fg-3)] ml-2">({dur}s)</span>
                   )}
                 </td>
-                <td className="text-right tabular-nums text-white/70">
+                <td className="text-right tabular-nums text-[color:var(--color-fg-2)]">
                   {r.queries_run ?? "-"}
                 </td>
-                <td className="text-right tabular-nums text-white/70">
+                <td className="text-right tabular-nums text-[color:var(--color-fg-2)]">
                   {r.cars_unique?.toLocaleString() ?? "-"}
                 </td>
                 <td className="pl-3">
                   <span
-                    className={`inline-block px-2 py-0.5 rounded text-xs ${
+                    className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium ${
                       r.status === "ok"
-                        ? "bg-emerald-500/15 text-emerald-300"
+                        ? "pill-pos"
                         : r.status === "running"
-                          ? "bg-amber-500/15 text-amber-300"
+                          ? "pill-warn"
                           : r.status === "error"
-                            ? "bg-rose-500/15 text-rose-300"
-                            : "bg-white/10 text-white/60"
+                            ? "pill-neg"
+                            : "pill-neutral"
                     }`}
                   >
                     {r.status ?? "?"}
                   </span>
                 </td>
-                <td className="pl-3 text-white/50 text-xs">{r.note ?? ""}</td>
-                <td className="pl-3 text-rose-300/80 text-xs">{r.error ?? ""}</td>
+                <td className="pl-3 text-[color:var(--color-fg-2)] text-xs">{r.note ?? ""}</td>
+                <td className="pl-3 text-[color:var(--color-neg)] text-xs">{r.error ?? ""}</td>
               </tr>
             );
           })}
