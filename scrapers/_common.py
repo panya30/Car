@@ -16,15 +16,27 @@ from __future__ import annotations
 import gzip
 import http.cookiejar
 import json
+import os
 import random
 import socket
 import time
 import urllib.request
 from datetime import datetime, timezone
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
 socket.setdefaulttimeout(30)
+
+# Load Car/.env (mirrored from indicator/.env.local) so OPENAI_API_KEY,
+# LINE_CHANNEL_ACCESS_TOKEN, etc. are available without manual export.
+try:
+    from dotenv import load_dotenv  # type: ignore
+    _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+    if _ENV_PATH.exists():
+        load_dotenv(_ENV_PATH)
+except Exception:
+    pass
 
 # --- HTTP transport --------------------------------------------------------
 
