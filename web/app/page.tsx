@@ -24,9 +24,12 @@ export default async function Home() {
   return (
     <div className="space-y-10">
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight">{tr(loc, "overview_title")}</h1>
-        <p className="text-sm text-white/50 mt-1">
-          {tr(loc, "overview_latest")} <time className="text-white/80">{fmtTs(t.ts)}</time>
+        <h1 className="text-3xl font-semibold tracking-tight" style={{fontFamily:"var(--font-display)"}}>
+          {tr(loc, "overview_title")}
+        </h1>
+        <p className="text-sm text-[color:var(--color-text-2)] mt-1">
+          {tr(loc, "overview_latest")}{" "}
+          <time className="text-[color:var(--color-text)]">{fmtTs(t.ts)}</time>
         </p>
       </section>
 
@@ -42,10 +45,12 @@ export default async function Home() {
           <Link
             key={s.source}
             href={`/listings?source=${encodeURIComponent(s.source)}`}
-            className="px-3 py-1.5 rounded border border-white/10 bg-white/[0.02] hover:bg-white/5 transition"
+            className="px-3 py-1.5 rounded-md vibrancy hover:bg-white/[0.06] transition-colors"
           >
-            <span className="text-white/90 mr-2">{s.source}</span>
-            <span className="text-white/40 tabular-nums">{s.n.toLocaleString()}</span>
+            <span className="text-[color:var(--color-text)] mr-2 font-medium">{s.source}</span>
+            <span className="text-[color:var(--color-text-3)] tabular-nums text-xs">
+              {s.n.toLocaleString()}
+            </span>
           </Link>
         ))}
       </section>
@@ -150,17 +155,21 @@ export default async function Home() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
-      <div className="text-xs uppercase tracking-wide text-white/40">{label}</div>
-      <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
+    <div className="vibrancy rounded-xl p-4">
+      <div className="text-[10px] uppercase tracking-[0.08em] font-semibold text-[color:var(--color-text-3)]">
+        {label}
+      </div>
+      <div className="text-2xl font-semibold tabular-nums mt-1 tracking-tight">
+        {value}
+      </div>
     </div>
   );
 }
 
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-5">
-      <h2 className="text-sm font-medium uppercase tracking-wide text-white/50 mb-4">
+    <div className="vibrancy rounded-xl p-5">
+      <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--color-text-3)] mb-3">
         {title}
       </h2>
       {children}
@@ -170,10 +179,14 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 function Bar({ pct }: { pct: number }) {
   return (
-    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+    <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
       <div
-        className="h-full bg-[#3ba3ff]/70 rounded-full"
-        style={{ width: `${Math.max(2, pct * 100)}%` }}
+        className="h-full rounded-full"
+        style={{
+          width: `${Math.max(2, pct * 100)}%`,
+          background:
+            "linear-gradient(90deg, rgba(10,132,255,0.85), rgba(10,132,255,0.6))",
+        }}
       />
     </div>
   );

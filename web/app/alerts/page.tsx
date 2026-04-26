@@ -23,7 +23,10 @@ export default async function AlertsPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1
+          className="text-3xl font-semibold tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           {tr(loc, "alerts_title")}
         </h1>
         <p className="text-sm text-white/50 mt-1">
@@ -66,7 +69,7 @@ export default async function AlertsPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
+    <div className="vibrancy rounded-xl p-4">
       <div className="text-xs uppercase tracking-wide text-white/40">{label}</div>
       <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
     </div>
@@ -80,7 +83,7 @@ function AlertRow({ alert: a, loc }: { alert: Alert; loc: Locale }) {
   const url = payload?.deal?.url;
   return (
     <div
-      className={`rounded-lg border bg-white/[0.02] p-4 ${cls.replace("text-", "")}`}
+      className={`vibrancy rounded-xl p-4 ${cls.replace("text-", "")}`}
       style={{ borderColor: cls.includes("rose") ? "rgba(244,63,94,.3)" :
                             cls.includes("amber") ? "rgba(245,158,11,.3)" :
                             "rgba(16,185,129,.3)" }}

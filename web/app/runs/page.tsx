@@ -11,7 +11,12 @@ export default async function RunsPage() {
   const runs = listRuns(100);
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">{tr(loc, "runs_title")}</h1>
+      <h1
+        className="text-3xl font-semibold tracking-tight"
+        style={{ fontFamily: "var(--font-display)" }}
+      >
+        {tr(loc, "runs_title")}
+      </h1>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-white/40 text-xs uppercase tracking-wide">

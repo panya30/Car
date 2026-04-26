@@ -48,7 +48,10 @@ export default async function StoriesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1
+          className="text-3xl font-semibold tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           {tr(loc, "stories_title")}
         </h1>
         <p className="text-sm text-white/50 mt-1">
@@ -118,7 +121,7 @@ function StoryCard({
   const isAnomaly = classification === "anomaly";
 
   return (
-    <article className="rounded-xl border border-white/5 bg-white/[0.02] overflow-hidden">
+    <article className="vibrancy rounded-2xl overflow-hidden">
       <div className="grid md:grid-cols-[280px_1fr]">
         {deal.img && (
           // eslint-disable-next-line @next/next/no-img-element

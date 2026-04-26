@@ -36,7 +36,10 @@ export default async function MatchesPage({
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">
+        <h1
+          className="text-3xl font-semibold tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
           {tr(loc, "matches_title")}
         </h1>
         <p className="text-sm text-white/50 mt-1">
@@ -85,7 +88,7 @@ export default async function MatchesPage({
         <select
           name="sources"
           defaultValue={String(minSources)}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="1">{tr(loc, "filter_all_groups")}</option>
           <option value="2">{tr(loc, "filter_cross_source")}</option>
@@ -94,7 +97,7 @@ export default async function MatchesPage({
         <select
           name="spread"
           defaultValue={String(minSpread)}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="0">{tr(loc, "filter_any_spread")}</option>
           <option value="5">{tr(loc, "filter_spread_5")}</option>
@@ -103,7 +106,7 @@ export default async function MatchesPage({
         </select>
         <button
           type="submit"
-          className="bg-[#3ba3ff] hover:bg-[#3ba3ff]/85 rounded text-black font-medium px-4"
+          className="btn-mac-primary px-4 text-[13px] font-medium"
         >
           {tr(loc, "btn_filter")}
         </button>
@@ -128,7 +131,7 @@ export default async function MatchesPage({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02] p-4">
+    <div className="vibrancy rounded-xl p-4">
       <div className="text-xs uppercase tracking-wide text-white/40">{label}</div>
       <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
     </div>
@@ -154,7 +157,7 @@ function MatchRow({
         : "text-white/60";
 
   return (
-    <div className="rounded-lg border border-white/5 bg-white/[0.02]">
+    <div className="vibrancy rounded-xl">
       <Link
         href={
           expanded

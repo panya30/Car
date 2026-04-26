@@ -74,8 +74,13 @@ export default async function ListingsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">{tr(loc, "listings_title")}</h1>
-        <p className="text-sm text-white/50 mt-1">
+        <h1
+          className="text-3xl font-semibold tracking-tight"
+          style={{ fontFamily: "var(--font-display)" }}
+        >
+          {tr(loc, "listings_title")}
+        </h1>
+        <p className="text-sm text-[color:var(--color-text-2)] mt-1">
           {total.toLocaleString()} {tr(loc, "listings_count_one")} ·{" "}
           {tr(loc, "page_of")} {page} {tr(loc, "of")} {totalPages}
         </p>
@@ -89,7 +94,7 @@ export default async function ListingsPage({
         <select
           name="source"
           defaultValue={sp.source ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "all_sources")}</option>
           {sources.map((s) => (
@@ -101,7 +106,7 @@ export default async function ListingsPage({
         <select
           name="make"
           defaultValue={sp.make ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2 col-span-2"
+          className="macfield px-2.5 py-2 text-[13px] col-span-2"
         >
           <option value="">{tr(loc, "all_makes")}</option>
           {makes.map((m) => (
@@ -115,26 +120,26 @@ export default async function ListingsPage({
           defaultValue={sp.year ?? ""}
           placeholder={tr(loc, "placeholder_year")}
           inputMode="numeric"
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         />
         <input
           name="min"
           defaultValue={sp.min ?? ""}
           placeholder={tr(loc, "placeholder_min")}
           inputMode="numeric"
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         />
         <input
           name="max"
           defaultValue={sp.max ?? ""}
           placeholder={tr(loc, "placeholder_max")}
           inputMode="numeric"
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         />
         <select
           name="sort"
           defaultValue={sp.sort ?? "year_desc"}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="year_desc">{tr(loc, "sort_year_desc")}</option>
           <option value="price_desc">{tr(loc, "sort_price_desc")}</option>
@@ -145,7 +150,7 @@ export default async function ListingsPage({
         <select
           name="fuel"
           defaultValue={sp.fuel ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_fuel")}</option>
           {fuels.map((f) => (
@@ -157,7 +162,7 @@ export default async function ListingsPage({
         <select
           name="trans"
           defaultValue={sp.trans ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_transmission")}</option>
           {transmissions.map((t) => (
@@ -169,7 +174,7 @@ export default async function ListingsPage({
         <select
           name="body"
           defaultValue={sp.body ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_body")}</option>
           {bodies.map((b) => (
@@ -181,7 +186,7 @@ export default async function ListingsPage({
         <select
           name="color"
           defaultValue={sp.color ?? ""}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         >
           <option value="">{tr(loc, "any_color")}</option>
           {colors.map((c) => (
@@ -195,17 +200,17 @@ export default async function ListingsPage({
           defaultValue={sp.maxkm ?? ""}
           placeholder={tr(loc, "placeholder_max_km")}
           inputMode="numeric"
-          className="bg-white/5 border border-white/10 rounded px-2 py-2"
+          className="macfield px-2.5 py-2 text-[13px]"
         />
         <input
           name="q"
           defaultValue={sp.q ?? ""}
           placeholder={tr(loc, "placeholder_search")}
-          className="bg-white/5 border border-white/10 rounded px-2 py-2 col-span-3 md:col-span-5"
+          className="macfield px-2.5 py-2 text-[13px] col-span-3 md:col-span-5"
         />
         <button
           type="submit"
-          className="bg-[#3ba3ff] hover:bg-[#3ba3ff]/85 rounded text-black font-medium"
+          className="btn-mac-primary px-4 text-[13px] font-medium"
         >
           {tr(loc, "btn_filter")}
         </button>
@@ -225,7 +230,7 @@ export default async function ListingsPage({
               href={cdHref}
               target="_blank"
               rel="noreferrer"
-              className="group rounded-lg border border-white/5 bg-white/[0.02] hover:border-white/15 transition overflow-hidden"
+              className="group vibrancy rounded-xl hover:bg-white/[0.06] transition-colors overflow-hidden"
             >
               {r.img && (
                 // eslint-disable-next-line @next/next/no-img-element
