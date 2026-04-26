@@ -33,6 +33,7 @@ class Listing:
     make: str | None
     model: str | None
     trim: str | None
+    engine_size: float | None
     mileage_km: int | None
     color: str | None
     fuel: str | None
@@ -46,23 +47,33 @@ class Listing:
     img: str | None
 
 
-def fetch_cohort(conn, make: str, model: str, year: int) -> list[Listing]:
-    sql = """
+def fetch_cohort(conn, make: str, model: str, year: int,
+                 engine_size: float | None = None) -> list[Listing]:
+    """Pull the latest snapshot for every listing in a (make, model, year,
+    optional engine_size) cohort. When engine_size is provided, results
+    are restricted to that displacement; without it, mixed-trim cohorts
+    are returned (legacy behaviour, kept for the explore CLI)."""
+    extra = "AND ABS(l.engine_size - ?) < 0.05" if engine_size else ""
+    sql = f"""
     WITH latest AS (
       SELECT cid, MAX(scraped_at) AS ts FROM listings GROUP BY cid
     )
     SELECT l.cid, l.source, l.prc, l.yr4,
            UPPER(l.amake) AS make, UPPER(l.amodel) AS model, l.atrim AS trim,
-           l.mileage_km, l.color, l.fuel, l.transmission, l.body_type,
-           l.seller_name, l.seller_type, l.location, l.url, l.title, l.namemmt,
-           l.img
+           l.engine_size, l.mileage_km, l.color, l.fuel, l.transmission,
+           l.body_type, l.seller_name, l.seller_type, l.location,
+           l.url, l.title, l.namemmt, l.img
     FROM listings l JOIN latest lt ON lt.cid=l.cid AND lt.ts=l.scraped_at
     WHERE UPPER(l.amake) = UPPER(?)
       AND UPPER(l.amodel) = UPPER(?)
       AND l.yr4 = ?
       AND l.prc > 50000
+      {extra}
     """
-    rows = conn.execute(sql, (make, model, year)).fetchall()
+    params: list = [make, model, year]
+    if engine_size:
+        params.append(engine_size)
+    rows = conn.execute(sql, params).fetchall()
     out = []
     for r in rows:
         d = dict(r)

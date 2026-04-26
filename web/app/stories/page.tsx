@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+
 import {
   fetchCachedStories,
   topStories,
@@ -65,13 +67,17 @@ export default function StoriesPage() {
       )}
 
       <div className="space-y-8">
-        {stories.map((s) => (
-          <StoryCard
-            key={`${s.cohort.make}-${s.cohort.model}-${s.cohort.year}`}
-            story={s}
-            photoAnalysis={"photoAnalysis" in s ? s.photoAnalysis : undefined}
-          />
-        ))}
+        {stories.map((s, i) => {
+          const cs = s as CachedStory;
+          return (
+            <StoryCard
+              key={`${s.cohort.make}-${s.cohort.model}-${s.cohort.year}-${(s.cohort as any).engine_size ?? "x"}-${i}`}
+              story={s}
+              photoAnalysis={"photoAnalysis" in s ? s.photoAnalysis : undefined}
+              polished={cs.llmPolished}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -80,9 +86,11 @@ export default function StoriesPage() {
 function StoryCard({
   story: s,
   photoAnalysis,
+  polished,
 }: {
   story: Story;
   photoAnalysis?: PhotoAnalysis;
+  polished?: string;
 }) {
   const { deal, stats, cohort, classification, discountPct, kmAdvantagePct,
           drivers, counterpoints } = s;
@@ -242,7 +250,53 @@ function StoryCard({
         </Section>
       </div>
       {photoAnalysis && <PhotoAnalysisStrip pa={photoAnalysis} />}
+      {polished && <PolishedStrip md={polished} />}
     </article>
+  );
+}
+
+function PolishedStrip({ md }: { md: string }) {
+  return (
+    <details className="border-t border-white/5 bg-white/[0.015]">
+      <summary className="cursor-pointer px-5 py-3 text-xs uppercase tracking-wider font-semibold text-[#3ba3ff]/80 hover:bg-white/[0.02] transition list-none flex items-center gap-2">
+        <span>✨ AI-polished Thai narrative</span>
+        <span className="text-white/30 normal-case font-normal text-[10px]">
+          (click to expand — same numbers, conversational prose)
+        </span>
+      </summary>
+      <div className="px-5 pb-5 pt-1 prose-polished text-sm leading-relaxed text-white/85 max-w-none">
+        <ReactMarkdown
+          components={{
+            h1: () => null, // hide the title H1; the card already has it
+            h2: ({ children }) => (
+              <h3 className="mt-4 mb-1 text-[11px] uppercase tracking-wider font-semibold text-white/45">
+                {children}
+              </h3>
+            ),
+            table: ({ children }) => (
+              <table className="my-2 text-xs border-collapse w-auto">{children}</table>
+            ),
+            th: ({ children }) => (
+              <th className="border border-white/10 px-2 py-1 text-white/50 font-medium">
+                {children}
+              </th>
+            ),
+            td: ({ children }) => (
+              <td className="border border-white/10 px-2 py-1 tabular-nums">{children}</td>
+            ),
+            ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
+            strong: ({ children }) => (
+              <strong className="text-white font-semibold">{children}</strong>
+            ),
+            code: ({ children }) => (
+              <code className="bg-white/10 rounded px-1 py-0.5 text-[11px]">{children}</code>
+            ),
+          }}
+        >
+          {md}
+        </ReactMarkdown>
+      </div>
+    </details>
   );
 }
 

@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS listings (
     seller_type  TEXT,
     condition    TEXT,
     detail_fetched_at TEXT,
+    engine_size  REAL,                  -- in liters (1.5, 2.0, 3.0); cohort splitter
     raw_json   TEXT,
     PRIMARY KEY (cid, scraped_at)
 );
@@ -191,6 +192,7 @@ def init():
         ("seller_type",       "TEXT"),
         ("condition",         "TEXT"),
         ("detail_fetched_at", "TEXT"),
+        ("engine_size",       "REAL"),
     ]:
         if col not in listing_cols:
             conn.execute(f"ALTER TABLE listings ADD COLUMN {col} {ddl}")

@@ -267,6 +267,7 @@ export function topStories(n = 6): Story[] {
 export type CachedStory = Story & {
   generated_at: string;
   photoAnalysis?: PhotoAnalysis;
+  llmPolished?: string;
 };
 
 export type PhotoAnalysis = {
@@ -287,7 +288,7 @@ export function fetchCachedStories(opts: {
     : "";
   const sql = `
     SELECT cs.cohort_key, cs.classification, cs.discount_pct, cs.km_gap_pct,
-           cs.story_json, cs.generated_at,
+           cs.story_json, cs.generated_at, cs.llm_polished,
            pa.cid AS pa_cid, pa.risk_score AS pa_risk,
            pa.findings AS pa_findings, pa.flags_json AS pa_flags,
            pa.analyzed_at AS pa_analyzed
@@ -315,6 +316,7 @@ export function fetchCachedStories(opts: {
       ...story,
       generated_at: r.generated_at,
     };
+    if (r.llm_polished) wrapped.llmPolished = r.llm_polished;
     if (r.pa_cid) {
       wrapped.photoAnalysis = {
         cid: r.pa_cid,
