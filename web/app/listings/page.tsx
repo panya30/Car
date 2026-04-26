@@ -39,7 +39,7 @@ export default async function ListingsPage({
 }) {
   const loc = await getLocale();
   if (!dbExists()) {
-    return <p className="text-[color:var(--color-fg-2)]">{tr(loc, "no_data")}</p>;
+    return <p className="text-fg-2">{tr(loc, "no_data")}</p>;
   }
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
@@ -80,7 +80,7 @@ export default async function ListingsPage({
         >
           {tr(loc, "listings_title")}
         </h1>
-        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
+        <p className="text-sm text-fg-2 mt-1">
           {total.toLocaleString()} {tr(loc, "listings_count_one")} ·{" "}
           {tr(loc, "page_of")} {page} {tr(loc, "of")} {totalPages}
         </p>
@@ -230,7 +230,7 @@ export default async function ListingsPage({
               href={cdHref}
               target="_blank"
               rel="noreferrer"
-              className="group surface rounded-xl hover:bg-[color:var(--color-surface-2)] transition-colors overflow-hidden"
+              className="group surface rounded-xl hover:bg-surface-2 transition-colors overflow-hidden"
             >
               {r.img && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -243,11 +243,11 @@ export default async function ListingsPage({
               )}
               <div className="p-3">
                 <div className="flex items-baseline justify-between gap-2">
-                  <div className="font-medium text-[color:var(--color-fg)] truncate">
+                  <div className="font-medium text-fg truncate">
                     {titleParts.join(" ") || r.namemmt}
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[10px] uppercase tracking-wide text-[color:var(--color-fg-3)] bg-[color:var(--color-surface-2)] px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] uppercase tracking-wide text-fg-3 bg-surface-2 px-1.5 py-0.5 rounded">
                       {r.source}
                     </span>
                     {r.ishot === "Y" && (
@@ -257,14 +257,14 @@ export default async function ListingsPage({
                     )}
                   </div>
                 </div>
-                <div className="text-xs text-[color:var(--color-fg-2)] truncate mt-0.5">
+                <div className="text-xs text-fg-2 truncate mt-0.5">
                   {r.title || r.namemmt}
                 </div>
                 <div className="mt-2 flex items-baseline justify-between">
-                  <div className="text-lg font-semibold tabular-nums text-[color:var(--color-accent)]">
+                  <div className="text-lg font-semibold tabular-nums text-accent">
                     {r.prc != null ? `฿${r.prc.toLocaleString()}` : "—"}
                   </div>
-                  <div className="text-xs text-[color:var(--color-fg-3)] tabular-nums">
+                  <div className="text-xs text-fg-3 tabular-nums">
                     {r.mileage_km != null
                       ? `${r.mileage_km.toLocaleString()} km`
                       : r.ipgvw != null
@@ -277,7 +277,7 @@ export default async function ListingsPage({
                     was ฿{r.prvprc} · {r.pcdisc != null ? `-${r.pcdisc}%` : ""}
                   </div>
                 )}
-                <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-[color:var(--color-fg-2)]">
+                <div className="mt-2 flex flex-wrap gap-1 text-[10px] text-fg-2">
                   {r.fuel && <Spec label={r.fuel} />}
                   {r.transmission && (
                     <Spec
@@ -292,7 +292,7 @@ export default async function ListingsPage({
                   {r.color && <Spec label={r.color} accent />}
                 </div>
                 {(r.seller_name || r.location) && (
-                  <div className="mt-1.5 text-[11px] text-[color:var(--color-fg-3)] truncate">
+                  <div className="mt-1.5 text-[11px] text-fg-3 truncate">
                     {[r.seller_name, r.location].filter(Boolean).join(" · ")}
                   </div>
                 )}
@@ -303,7 +303,7 @@ export default async function ListingsPage({
       </div>
 
       {rows.length === 0 && (
-        <p className="text-[color:var(--color-fg-3)] text-sm">{tr(loc, "no_matches")}</p>
+        <p className="text-fg-3 text-sm">{tr(loc, "no_matches")}</p>
       )}
 
       <Pagination
@@ -322,7 +322,7 @@ function Spec({ label, accent = false }: { label: string; accent?: boolean }) {
   return (
     <span
       className={`px-1.5 py-0.5 rounded ${
-        accent ? "bg-[color:var(--color-pos-bg)] text-[color:var(--color-accent)]" : "bg-[color:var(--color-surface-2)]"
+        accent ? "bg-pos-bg text-accent" : "bg-surface-2"
       }`}
     >
       {label}
@@ -356,14 +356,14 @@ function Pagination({
   };
   return (
     <div className="flex items-center justify-between text-sm pt-4">
-      <div className="text-[color:var(--color-fg-3)]">
+      <div className="text-fg-3">
         {pageLabel} {current} / {total}
       </div>
       <div className="flex gap-2">
         {current > 1 && (
           <Link
             href={pageHref(current - 1)}
-            className="px-3 py-1.5 border border-[color:var(--color-line)] rounded hover:bg-[color:var(--color-surface-2)]"
+            className="px-3 py-1.5 border border-line rounded hover:bg-surface-2"
           >
             {prevLabel}
           </Link>
@@ -371,7 +371,7 @@ function Pagination({
         {current < total && (
           <Link
             href={pageHref(current + 1)}
-            className="px-3 py-1.5 border border-[color:var(--color-line)] rounded hover:bg-[color:var(--color-surface-2)]"
+            className="px-3 py-1.5 border border-line rounded hover:bg-surface-2"
           >
             {nextLabel}
           </Link>

@@ -42,14 +42,14 @@ export default async function MatchesPage({
         >
           {tr(loc, "matches_title")}
         </h1>
-        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
+        <p className="text-sm text-fg-2 mt-1">
           {tr(loc, "matches_intro")}
-          <code className="text-[color:var(--color-fg-2)]">
+          <code className="text-fg-2">
             (make, model, year, ฿50k, 20k-km)
           </code>
           {tr(loc, "matches_intro_continued")}
           {summary.computedAt && (
-            <span className="block text-[11px] mt-1 text-[color:var(--color-fg-3)]">
+            <span className="block text-[11px] mt-1 text-fg-3">
               {tr(loc, "matches_computed_at")}{" "}
               {new Date(summary.computedAt).toLocaleString(
                 loc === "th" ? "th-TH" : "en-GB",
@@ -122,7 +122,7 @@ export default async function MatchesPage({
           />
         ))}
         {groups.length === 0 && (
-          <p className="text-[color:var(--color-fg-3)] text-sm">{tr(loc, "matches_no_results")}</p>
+          <p className="text-fg-3 text-sm">{tr(loc, "matches_no_results")}</p>
         )}
       </div>
     </div>
@@ -132,7 +132,7 @@ export default async function MatchesPage({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="surface rounded-xl p-4">
-      <div className="text-xs uppercase tracking-wide text-[color:var(--color-fg-3)]">{label}</div>
+      <div className="text-xs uppercase tracking-wide text-fg-3">{label}</div>
       <div className="text-2xl font-semibold tabular-nums mt-1">{value}</div>
     </div>
   );
@@ -151,10 +151,10 @@ function MatchRow({
 
   const spreadColor =
     group.spread_pct >= 15
-      ? "text-[color:var(--color-pos)]"
+      ? "text-pos"
       : group.spread_pct >= 8
-        ? "text-[color:var(--color-warn)]"
-        : "text-[color:var(--color-fg-2)]";
+        ? "text-warn"
+        : "text-fg-2";
 
   return (
     <div className="surface rounded-xl">
@@ -164,13 +164,13 @@ function MatchRow({
             ? `/matches`
             : `/matches?expand=${encodeURIComponent(group.group_id)}`
         }
-        className="block p-4 hover:bg-[color:var(--color-surface)] transition"
+        className="block p-4 hover:bg-surface transition"
       >
         <div className="flex items-baseline gap-3 flex-wrap">
-          <span className="font-medium text-[color:var(--color-fg)]">
+          <span className="font-medium text-fg">
             {group.yr4} {group.make} {group.model}
           </span>
-          <span className="text-xs text-[color:var(--color-fg-3)] tabular-nums">
+          <span className="text-xs text-fg-3 tabular-nums">
             n={group.n_listings} · {group.n_sources}{" "}
             {tr(
               loc,
@@ -180,7 +180,7 @@ function MatchRow({
             )}
           </span>
           <span className="ml-auto flex items-baseline gap-3">
-            <span className="text-sm tabular-nums text-[color:var(--color-fg-2)]">
+            <span className="text-sm tabular-nums text-fg-2">
               {fmtBaht(group.cheapest_prc)} → {fmtBaht(group.dearest_prc)}
             </span>
             <span className={`text-sm font-semibold tabular-nums ${spreadColor}`}>
@@ -188,13 +188,13 @@ function MatchRow({
             </span>
           </span>
         </div>
-        <div className="text-[11px] text-[color:var(--color-fg-3)] mt-1 font-mono">
+        <div className="text-[11px] text-fg-3 mt-1 font-mono">
           {group.group_id}
         </div>
       </Link>
 
       {expanded && (
-        <div className="border-t border-[color:var(--color-line)] p-4 space-y-2">
+        <div className="border-t border-line p-4 space-y-2">
           {listings.map((l) => {
             const url =
               l.url ??
@@ -203,26 +203,26 @@ function MatchRow({
                 : "#");
             const deltaColor =
               l.delta_pct === 0
-                ? "text-[color:var(--color-pos)]"
+                ? "text-pos"
                 : l.delta_pct >= 10
-                  ? "text-[color:var(--color-neg)]"
-                  : "text-[color:var(--color-warn)]";
+                  ? "text-neg"
+                  : "text-warn";
             return (
               <a
                 key={l.cid}
                 href={url}
                 target="_blank"
                 rel="noreferrer"
-                className="block rounded px-3 py-2 hover:bg-[color:var(--color-surface)] text-sm"
+                className="block rounded px-3 py-2 hover:bg-surface text-sm"
               >
                 <div className="flex items-baseline gap-3 flex-wrap">
-                  <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-fg-3)] bg-[color:var(--color-surface-2)] px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] uppercase tracking-wider text-fg-3 bg-surface-2 px-1.5 py-0.5 rounded">
                     {l.source}
                   </span>
-                  <span className="text-[color:var(--color-fg)] truncate flex-1">
+                  <span className="text-fg truncate flex-1">
                     {l.title ?? l.cid}
                   </span>
-                  <span className="font-semibold tabular-nums text-[color:var(--color-accent)]">
+                  <span className="font-semibold tabular-nums text-accent">
                     {fmtBaht(l.prc)}
                   </span>
                   <span className={`tabular-nums w-16 text-right ${deltaColor}`}>
@@ -231,7 +231,7 @@ function MatchRow({
                       : `+${l.delta_pct.toFixed(0)}%`}
                   </span>
                 </div>
-                <div className="text-[11px] text-[color:var(--color-fg-3)] mt-0.5">
+                <div className="text-[11px] text-fg-3 mt-0.5">
                   cid {l.cid}
                   {l.mileage_km != null && (
                     <> · {l.mileage_km.toLocaleString()} km</>

@@ -54,23 +54,23 @@ export default async function StoriesPage() {
         >
           {tr(loc, "stories_title")}
         </h1>
-        <p className="text-sm text-[color:var(--color-fg-2)] mt-1">
+        <p className="text-sm text-fg-2 mt-1">
           {tr(loc, "stories_intro")}
           {cachedAt && (
-            <span className="block text-[11px] text-[color:var(--color-fg-3)] mt-1">
+            <span className="block text-[11px] text-fg-3 mt-1">
               {tr(loc, "stories_cached_at")}{" "}
               {new Date(cachedAt).toLocaleString(loc === "th" ? "th-TH" : "en-GB")}{" "}
               · {tr(loc, "stories_regen_with")}{" "}
-              <code className="text-[color:var(--color-fg-2)]">python regenerate_stories.py</code>
+              <code className="text-fg-2">python regenerate_stories.py</code>
             </span>
           )}
         </p>
       </header>
 
       {stories.length === 0 && (
-        <p className="text-[color:var(--color-fg-2)] text-sm">
+        <p className="text-fg-2 text-sm">
           {tr(loc, "stories_empty")}{" "}
-          <code className="text-[color:var(--color-fg-2)]">python pipeline.py</code>.
+          <code className="text-fg-2">python pipeline.py</code>.
         </p>
       )}
 
@@ -128,7 +128,7 @@ function StoryCard({
           <img
             src={deal.img}
             alt={deal.title ?? ""}
-            className="w-full h-full md:max-h-72 object-cover bg-[color:var(--color-surface-2)]"
+            className="w-full h-full md:max-h-72 object-cover bg-surface-2"
             loading="lazy"
           />
         )}
@@ -139,10 +139,10 @@ function StoryCard({
             >
               {badge.label}
             </span>
-            <span className="text-[10px] uppercase tracking-wider text-[color:var(--color-fg-3)] bg-[color:var(--color-surface-2)] px-2 py-0.5 rounded">
+            <span className="text-[10px] uppercase tracking-wider text-fg-3 bg-surface-2 px-2 py-0.5 rounded">
               {deal.source}
             </span>
-            <span className="text-xs text-[color:var(--color-fg-3)] ml-auto">cid {deal.cid}</span>
+            <span className="text-xs text-fg-3 ml-auto">cid {deal.cid}</span>
           </div>
 
           <h2 className="text-xl font-semibold tracking-tight">
@@ -150,14 +150,14 @@ function StoryCard({
               href={detailUrl}
               target="_blank"
               rel="noreferrer"
-              className="hover:text-[color:var(--color-accent)]"
+              className="hover:text-accent"
             >
               {deal.title ?? titleParts}
             </a>
           </h2>
 
-          <p className="mt-3 text-sm text-[color:var(--color-fg-2)] leading-relaxed">
-            <span className="font-semibold text-[color:var(--color-accent)]">
+          <p className="mt-3 text-sm text-fg-2 leading-relaxed">
+            <span className="font-semibold text-accent">
               {fmtBaht(deal.prc)}
             </span>{" "}
             {loc === "th" ? "— ต่ำกว่าค่ากลาง " : "— "}
@@ -171,7 +171,7 @@ function StoryCard({
                 {loc === "th" ? "ไมล์" : "Mileage"}{" "}
                 <span className="font-semibold">{fmtKm(deal.mileage_km)}</span>{" "}
                 {loc === "th" ? "ต่ำกว่าเฉลี่ยกลุ่ม " : "is "}
-                <span className={isAnomaly ? "text-[color:var(--color-neg)] font-semibold" : ""}>
+                <span className={isAnomaly ? "text-neg font-semibold" : ""}>
                   {kmAdvantagePct.toFixed(0)}%
                 </span>
                 {loc === "th"
@@ -182,7 +182,7 @@ function StoryCard({
           </p>
 
           {isAnomaly && (
-            <p className="mt-3 text-sm text-[color:var(--color-neg)] italic">
+            <p className="mt-3 text-sm text-neg italic">
               ⚠ {tr(loc, "anomaly_subline")}
             </p>
           )}
@@ -195,7 +195,7 @@ function StoryCard({
             <CohortCell pct="P75" prc={stats.p75_prc} km={stats.p75_km} />
             <CohortCell pct="P90" prc={stats.p90_prc} />
           </div>
-          <p className="mt-2 text-[11px] text-[color:var(--color-fg-3)]">
+          <p className="mt-2 text-[11px] text-fg-3">
             {tr(loc, "cohort_summary_prefix")} {stats.n}{" "}
             {tr(loc, "cohort_summary_listings")} {stats.n_sources}{" "}
             {tr(
@@ -218,7 +218,7 @@ function StoryCard({
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 border-t border-[color:var(--color-line)]">
+      <div className="grid md:grid-cols-3 border-t border-line">
         <Section title={tr(loc, "section_drivers")}>
           {drivers.length === 0 ? (
             <Empty msg={tr(loc, "label_drivers_empty")} />
@@ -240,7 +240,7 @@ function StoryCard({
         <Section title={tr(loc, "section_action")} border>
           {isAnomaly ? (
             <ul className="space-y-1.5">
-              <li className="text-[color:var(--color-neg)] font-medium">
+              <li className="text-neg font-medium">
                 {tr(loc, "anomaly_action_headline")}
               </li>
               <li>
@@ -258,17 +258,17 @@ function StoryCard({
             <ul className="space-y-1.5">
               <li>
                 {tr(loc, "pill_anchor")}{" "}
-                <span className="text-[color:var(--color-pos)] font-medium">{fmtBaht(anchor)}</span>
+                <span className="text-pos font-medium">{fmtBaht(anchor)}</span>
               </li>
               <li>
                 {tr(loc, "pill_walkaway")}{" "}
-                <span className="text-[color:var(--color-warn)] font-medium">{fmtBaht(walkAway)}</span>
+                <span className="text-warn font-medium">{fmtBaht(walkAway)}</span>
               </li>
               <li>
                 {tr(loc, "pill_headroom")}{" "}
-                <span className="text-[color:var(--color-pos)] font-medium">{fmtBaht(headroom)}</span>
+                <span className="text-pos font-medium">{fmtBaht(headroom)}</span>
                 {headroom > 0 && (
-                  <span className="text-[color:var(--color-fg-3)]">
+                  <span className="text-fg-3">
                     {" "}({((headroom / deal.prc) * 100).toFixed(0)}% {tr(loc, "pill_upside")})
                   </span>
                 )}
@@ -286,19 +286,19 @@ function StoryCard({
 
 function PolishedStrip({ md, loc }: { md: string; loc: Locale }) {
   return (
-    <details className="border-t border-[color:var(--color-line)] bg-white/[0.015]">
-      <summary className="cursor-pointer px-5 py-3 text-xs uppercase tracking-wider font-semibold text-[color:var(--color-accent)]/80 hover:bg-[color:var(--color-surface)] transition list-none flex items-center gap-2">
+    <details className="border-t border-line bg-white/[0.015]">
+      <summary className="cursor-pointer px-5 py-3 text-xs uppercase tracking-wider font-semibold text-accent/80 hover:bg-surface transition list-none flex items-center gap-2">
         <span>{tr(loc, "polish_summary")}</span>
-        <span className="text-[color:var(--color-fg-3)] normal-case font-normal text-[10px]">
+        <span className="text-fg-3 normal-case font-normal text-[10px]">
           {tr(loc, "polish_summary_hint")}
         </span>
       </summary>
-      <div className="px-5 pb-5 pt-1 prose-polished text-sm leading-relaxed text-[color:var(--color-fg)] max-w-none">
+      <div className="px-5 pb-5 pt-1 prose-polished text-sm leading-relaxed text-fg max-w-none">
         <ReactMarkdown
           components={{
             h1: () => null, // hide the title H1; the card already has it
             h2: ({ children }) => (
-              <h3 className="mt-4 mb-1 text-[11px] uppercase tracking-wider font-semibold text-[color:var(--color-fg-2)]">
+              <h3 className="mt-4 mb-1 text-[11px] uppercase tracking-wider font-semibold text-fg-2">
                 {children}
               </h3>
             ),
@@ -306,19 +306,19 @@ function PolishedStrip({ md, loc }: { md: string; loc: Locale }) {
               <table className="my-2 text-xs border-collapse w-auto">{children}</table>
             ),
             th: ({ children }) => (
-              <th className="border border-[color:var(--color-line)] px-2 py-1 text-[color:var(--color-fg-2)] font-medium">
+              <th className="border border-line px-2 py-1 text-fg-2 font-medium">
                 {children}
               </th>
             ),
             td: ({ children }) => (
-              <td className="border border-[color:var(--color-line)] px-2 py-1 tabular-nums">{children}</td>
+              <td className="border border-line px-2 py-1 tabular-nums">{children}</td>
             ),
             ul: ({ children }) => <ul className="list-disc list-inside space-y-1 my-2">{children}</ul>,
             strong: ({ children }) => (
               <strong className="text-white font-semibold">{children}</strong>
             ),
             code: ({ children }) => (
-              <code className="bg-[color:var(--color-surface-2)] rounded px-1 py-0.5 text-[11px]">{children}</code>
+              <code className="bg-surface-2 rounded px-1 py-0.5 text-[11px]">{children}</code>
             ),
           }}
         >
@@ -343,7 +343,7 @@ function PhotoAnalysisStrip({ pa, loc }: { pa: PhotoAnalysis; loc: Locale }) {
         ? "pill-warn border-transparent"
         : "pill-pos border-transparent";
   return (
-    <div className={`border-t border-[color:var(--color-line)] px-5 py-4 ${tone} text-sm`}>
+    <div className={`border-t border-line px-5 py-4 ${tone} text-sm`}>
       <div className="flex items-baseline gap-3 flex-wrap">
         <span className="text-[11px] uppercase tracking-wider font-semibold">
           {tr(loc, "photo_audit")}
@@ -388,14 +388,14 @@ function CohortCell({
     <div
       className={`rounded p-2 text-center ${
         highlight
-          ? "bg-[color:color-mix(in_srgb,var(--color-accent)_10%,transparent)] border border-[color:var(--color-accent)]"
-          : "bg-[color:var(--color-surface-2)]"
+          ? "bg-[color:color-mix(in_srgb,var(--color-accent)_10%,transparent)] border border-accent"
+          : "bg-surface-2"
       }`}
     >
-      <div className="text-[10px] text-[color:var(--color-fg-3)] uppercase">{pct}</div>
+      <div className="text-[10px] text-fg-3 uppercase">{pct}</div>
       <div className="font-semibold tabular-nums">{fmtBaht(prc)}</div>
       {km != null && (
-        <div className="text-[10px] text-[color:var(--color-fg-3)] tabular-nums mt-0.5">
+        <div className="text-[10px] text-fg-3 tabular-nums mt-0.5">
           {fmtKm(km)}
         </div>
       )}
@@ -414,11 +414,11 @@ function Section({
 }) {
   return (
     <div
-      className={`p-5 text-sm text-[color:var(--color-fg-2)] leading-relaxed ${
-        border ? "md:border-l border-[color:var(--color-line)]" : ""
+      className={`p-5 text-sm text-fg-2 leading-relaxed ${
+        border ? "md:border-l border-line" : ""
       }`}
     >
-      <h3 className="text-[11px] uppercase tracking-wider font-semibold text-[color:var(--color-fg-2)] mb-2">
+      <h3 className="text-[11px] uppercase tracking-wider font-semibold text-fg-2 mb-2">
         {title}
       </h3>
       {children}
@@ -427,5 +427,5 @@ function Section({
 }
 
 function Empty({ msg }: { msg: string }) {
-  return <p className="text-[color:var(--color-fg-3)] italic text-xs">{msg}</p>;
+  return <p className="text-fg-3 italic text-xs">{msg}</p>;
 }

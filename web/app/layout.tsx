@@ -69,9 +69,9 @@ export default async function RootLayout({
             <main className="flex-1 px-10 py-10 max-w-[1320px] w-full">
               {children}
             </main>
-            <footer className="px-10 py-8 text-[11px] text-[color:var(--color-fg-3)]">
+            <footer className="px-10 py-8 text-[11px] text-fg-3">
               {t(loc, "footer_data")}{" "}
-              <code className="text-[color:var(--color-fg-2)] font-mono text-[10px]">
+              <code className="text-fg-2 font-mono text-[10px]">
                 python scraper.py
               </code>
             </footer>
@@ -97,11 +97,11 @@ function Sidebar({
     <aside className="sidebar w-[230px] shrink-0 sticky top-0 h-screen overflow-y-auto py-4 hidden md:block">
       <div className="px-5 py-2 mb-3">
         <Link href="/" className="block">
-          <div className="text-[15px] font-semibold tracking-tight text-[color:var(--color-fg)]"
+          <div className="text-[15px] font-semibold tracking-tight text-fg"
                style={{ fontFamily: "var(--font-display)" }}>
             Car
           </div>
-          <div className="text-[11px] text-[color:var(--color-fg-3)] mt-0.5">
+          <div className="text-[11px] text-fg-3 mt-0.5">
             {t(loc, "brand_subtitle").replace("/ ", "")}
             {totalCars > 0 && (
               <span className="tabular-nums">
@@ -115,7 +115,7 @@ function Sidebar({
 
       {SECTIONS.map((section) => (
         <div key={section.label_en} className="mb-5">
-          <div className="px-5 mb-1 text-[10px] font-semibold tracking-[0.06em] uppercase text-[color:var(--color-fg-3)]">
+          <div className="px-5 mb-1 text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-3">
             {loc === "th" ? section.label_th : section.label_en}
           </div>
           <nav className="px-2">
@@ -130,11 +130,11 @@ function Sidebar({
                   href={item.href}
                   className={`flex items-center gap-2.5 px-3 py-1.5 rounded-md text-[13px] transition-colors ${
                     active
-                      ? "sidebar-item-active text-[color:var(--color-fg)]"
-                      : "text-[color:var(--color-fg-2)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface)]"
+                      ? "sidebar-item-active text-fg"
+                      : "text-fg-2 hover:text-fg hover:bg-surface"
                   }`}
                 >
-                  <span className="w-4 text-center text-[11px] text-[color:var(--color-fg-3)]">
+                  <span className="w-4 text-center text-[11px] text-fg-3">
                     {item.icon}
                   </span>
                   <span className="font-medium">{t(loc, item.key)}</span>
@@ -147,7 +147,7 @@ function Sidebar({
 
       {sources.length > 0 && (
         <div className="mb-5">
-          <div className="px-5 mb-1 text-[10px] font-semibold tracking-[0.06em] uppercase text-[color:var(--color-fg-3)]">
+          <div className="px-5 mb-1 text-[10px] font-semibold tracking-[0.06em] uppercase text-fg-3">
             {loc === "th" ? "แหล่งข้อมูล" : "Sources"}
           </div>
           <nav className="px-2">
@@ -155,10 +155,10 @@ function Sidebar({
               <Link
                 key={s.source}
                 href={`/listings?source=${encodeURIComponent(s.source)}`}
-                className="flex items-center px-3 py-1 rounded-md text-[12px] text-[color:var(--color-fg-2)] hover:text-[color:var(--color-fg)] hover:bg-[color:var(--color-surface)]"
+                className="flex items-center px-3 py-1 rounded-md text-[12px] text-fg-2 hover:text-fg hover:bg-surface"
               >
                 <span className="font-medium truncate">{s.source}</span>
-                <span className="ml-auto tabular-nums text-[11px] text-[color:var(--color-fg-3)]">
+                <span className="ml-auto tabular-nums text-[11px] text-fg-3">
                   {s.n.toLocaleString()}
                 </span>
               </Link>
@@ -202,9 +202,9 @@ function Breadcrumb({ loc, path }: { loc: Locale; path: string }) {
   const label = map[top] ?? map["/"];
   return (
     <div className="flex items-center gap-2 text-[13px]">
-      <span className="text-[color:var(--color-fg-3)]">Car</span>
-      <span className="text-[color:var(--color-fg-3)]">›</span>
-      <span className="font-semibold text-[color:var(--color-fg)]">{label}</span>
+      <span className="text-fg-3">Car</span>
+      <span className="text-fg-3">›</span>
+      <span className="font-semibold text-fg">{label}</span>
     </div>
   );
 }
