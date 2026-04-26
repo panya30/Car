@@ -1,4 +1,5 @@
 import { alertSummary, listAlerts, type Alert } from "@/lib/alerts";
+import { getLocale, t as tr, type Locale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -14,29 +15,35 @@ const KIND_ICON: Record<string, string> = {
   spread: "↔️",
 };
 
-export default function AlertsPage() {
+export default async function AlertsPage() {
+  const loc = await getLocale();
   const alerts = listAlerts({ limit: 80 });
   const sum = alertSummary();
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Alerts</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {tr(loc, "alerts_title")}
+        </h1>
         <p className="text-sm text-white/50 mt-1">
-          Anomalies and deals queued by the post-scrape pipeline. Push to LINE
-          via{" "}
-          <code className="text-white/70">python line_alerts.py</code> after
-          setting <code className="text-white/70">LINE_CHANNEL_ACCESS_TOKEN</code>{" "}
-          + <code className="text-white/70">LINE_TARGET_USER_ID</code>.
+          {tr(loc, "alerts_intro")}{" "}
+          <code className="text-white/70">python line_alerts.py</code>{" "}
+          {tr(loc, "alerts_intro_after")}{" "}
+          <code className="text-white/70">LINE_CHANNEL_ACCESS_TOKEN</code> +{" "}
+          <code className="text-white/70">LINE_TARGET_USER_ID</code>.
         </p>
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Total" value={sum.total.toLocaleString()} />
-        <Stat label="Unseen" value={sum.unseen.toLocaleString()} />
-        <Stat label="Pushed (LINE)" value={sum.notified.toLocaleString()} />
+        <Stat label={tr(loc, "alert_total")} value={sum.total.toLocaleString()} />
+        <Stat label={tr(loc, "alert_unseen")} value={sum.unseen.toLocaleString()} />
         <Stat
-          label="Unseen anomalies"
+          label={tr(loc, "alert_pushed")}
+          value={sum.notified.toLocaleString()}
+        />
+        <Stat
+          label={tr(loc, "alert_unseen_anomalies")}
           value={sum.anomaliesUnseen.toLocaleString()}
         />
       </div>
@@ -44,13 +51,13 @@ export default function AlertsPage() {
       <div className="space-y-2">
         {alerts.length === 0 && (
           <p className="text-white/40 text-sm">
-            No alerts yet — run{" "}
+            {tr(loc, "alerts_empty")}{" "}
             <code className="text-white/70">python regenerate_stories.py</code>{" "}
-            after a scrape to generate.
+            {tr(loc, "alerts_to_generate")}
           </p>
         )}
         {alerts.map((a) => (
-          <AlertRow key={a.alert_id} alert={a} />
+          <AlertRow key={a.alert_id} alert={a} loc={loc} />
         ))}
       </div>
     </div>
@@ -66,7 +73,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function AlertRow({ alert: a }: { alert: Alert }) {
+function AlertRow({ alert: a, loc }: { alert: Alert; loc: Locale }) {
   const cls = SEVERITY[a.severity ?? "info"] ?? SEVERITY.info;
   const icon = KIND_ICON[a.kind] ?? "•";
   const payload = a.payload_json ? safeParse(a.payload_json) : null;
@@ -86,10 +93,14 @@ function AlertRow({ alert: a }: { alert: Alert }) {
         </span>
         <span className="text-white/90 font-medium flex-1">{a.title}</span>
         <span className="text-[11px] text-white/40 tabular-nums">
-          {new Date(a.created_at).toLocaleString("en-GB")}
+          {new Date(a.created_at).toLocaleString(
+            loc === "th" ? "th-TH" : "en-GB",
+          )}
         </span>
         {a.notified_at && (
-          <span className="text-[10px] text-emerald-400/70">📲 pushed</span>
+          <span className="text-[10px] text-emerald-400/70">
+            📲 {tr(loc, "alert_pushed_label")}
+          </span>
         )}
       </div>
       {a.detail && (

@@ -1,26 +1,28 @@
 import { dbExists, listRuns } from "@/lib/db";
+import { getLocale, t as tr } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-export default function RunsPage() {
+export default async function RunsPage() {
+  const loc = await getLocale();
   if (!dbExists()) {
-    return <p className="text-white/50">No data yet. Run the scraper.</p>;
+    return <p className="text-white/50">{tr(loc, "no_data")}</p>;
   }
   const runs = listRuns(100);
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Scrape runs</h1>
+      <h1 className="text-2xl font-semibold">{tr(loc, "runs_title")}</h1>
       <table className="w-full text-sm">
         <thead>
           <tr className="text-white/40 text-xs uppercase tracking-wide">
-            <th className="text-left font-medium pb-2">#</th>
-            <th className="text-left font-medium pb-2">Started</th>
-            <th className="text-left font-medium pb-2">Finished</th>
-            <th className="text-right font-medium pb-2">Queries</th>
-            <th className="text-right font-medium pb-2">Unique</th>
-            <th className="text-left font-medium pb-2 pl-3">Status</th>
-            <th className="text-left font-medium pb-2 pl-3">Note</th>
-            <th className="text-left font-medium pb-2 pl-3">Error</th>
+            <th className="text-left font-medium pb-2">{tr(loc, "th_run")}</th>
+            <th className="text-left font-medium pb-2">{tr(loc, "th_started")}</th>
+            <th className="text-left font-medium pb-2">{tr(loc, "th_finished")}</th>
+            <th className="text-right font-medium pb-2">{tr(loc, "th_queries")}</th>
+            <th className="text-right font-medium pb-2">{tr(loc, "th_unique")}</th>
+            <th className="text-left font-medium pb-2 pl-3">{tr(loc, "th_status")}</th>
+            <th className="text-left font-medium pb-2 pl-3">{tr(loc, "th_note")}</th>
+            <th className="text-left font-medium pb-2 pl-3">{tr(loc, "th_error")}</th>
           </tr>
         </thead>
         <tbody>

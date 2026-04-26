@@ -8,14 +8,22 @@ import {
   type PhotoAnalysis,
   type Story,
 } from "@/lib/stories";
+import { getLocale, t as tr, type Locale } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-const BADGES: Record<Classification, { label: string; cls: string }> = {
-  deal:       { label: "DEAL",       cls: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" },
-  anomaly:    { label: "ANOMALY",    cls: "bg-rose-500/15 text-rose-300 border-rose-500/30" },
-  fair:       { label: "FAIR",       cls: "bg-amber-500/15 text-amber-300 border-amber-500/30" },
-  overpriced: { label: "OVERPRICED", cls: "bg-zinc-500/15 text-zinc-300 border-zinc-500/30" },
+const BADGE_CSS: Record<Classification, string> = {
+  deal:       "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
+  anomaly:    "bg-rose-500/15 text-rose-300 border-rose-500/30",
+  fair:       "bg-amber-500/15 text-amber-300 border-amber-500/30",
+  overpriced: "bg-zinc-500/15 text-zinc-300 border-zinc-500/30",
+};
+
+const BADGE_KEY: Record<Classification, string> = {
+  deal: "badge_deal",
+  anomaly: "badge_anomaly",
+  fair: "badge_fair",
+  overpriced: "badge_overpriced",
 };
 
 function fmtBaht(x: number | null) {
@@ -28,7 +36,8 @@ function fmtKm(x: number | null) {
   return `${Math.round(x).toLocaleString()} km`;
 }
 
-export default function StoriesPage() {
+export default async function StoriesPage() {
+  const loc = await getLocale();
   // Prefer cached stories (precomputed by `python regenerate_stories.py`).
   // Fall back to live compute if the cache is empty.
   const cached = fetchCachedStories({ limit: 30 });
@@ -39,19 +48,16 @@ export default function StoriesPage() {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-semibold tracking-tight">Story Units</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">
+          {tr(loc, "stories_title")}
+        </h1>
         <p className="text-sm text-white/50 mt-1">
-          Cohort-indexed 6-section reports.{" "}
-          <span className="text-rose-300">ANOMALY</span> = price+km gap fits
-          the rollback / flood-rebrand signature, treat as <em>verify or
-          walk away</em>.{" "}
-          <span className="text-emerald-300">DEAL</span> = top-quartile cohort
-          value.{" "}
-          <span className="text-amber-300">FAIR</span> = priced near median.
+          {tr(loc, "stories_intro")}
           {cachedAt && (
             <span className="block text-[11px] text-white/30 mt-1">
-              cached at {new Date(cachedAt).toLocaleString("en-GB")} ·
-              regenerate with{" "}
+              {tr(loc, "stories_cached_at")}{" "}
+              {new Date(cachedAt).toLocaleString(loc === "th" ? "th-TH" : "en-GB")}{" "}
+              · {tr(loc, "stories_regen_with")}{" "}
               <code className="text-white/60">python regenerate_stories.py</code>
             </span>
           )}
@@ -60,8 +66,7 @@ export default function StoriesPage() {
 
       {stories.length === 0 && (
         <p className="text-white/50 text-sm">
-          No stories — need at least 25 listings per cohort. Run more scrape
-          passes, then{" "}
+          {tr(loc, "stories_empty")}{" "}
           <code className="text-white/70">python pipeline.py</code>.
         </p>
       )}
@@ -73,6 +78,7 @@ export default function StoriesPage() {
             <StoryCard
               key={`${s.cohort.make}-${s.cohort.model}-${s.cohort.year}-${(s.cohort as any).engine_size ?? "x"}-${i}`}
               story={s}
+              loc={loc}
               photoAnalysis={"photoAnalysis" in s ? s.photoAnalysis : undefined}
               polished={cs.llmPolished}
             />
@@ -85,16 +91,21 @@ export default function StoriesPage() {
 
 function StoryCard({
   story: s,
+  loc,
   photoAnalysis,
   polished,
 }: {
   story: Story;
+  loc: Locale;
   photoAnalysis?: PhotoAnalysis;
   polished?: string;
 }) {
   const { deal, stats, cohort, classification, discountPct, kmAdvantagePct,
           drivers, counterpoints } = s;
-  const badge = BADGES[classification];
+  const badge = {
+    label: tr(loc, BADGE_KEY[classification]),
+    cls: BADGE_CSS[classification],
+  };
   const detailUrl =
     deal.url ??
     (deal.source === "taladrod"
@@ -146,24 +157,30 @@ function StoryCard({
             <span className="font-semibold text-[#3ba3ff]">
               {fmtBaht(deal.prc)}
             </span>{" "}
-            — <span className="font-semibold">{discountPct.toFixed(0)}%</span>{" "}
-            below cohort median {fmtBaht(stats.median_prc)}.{" "}
+            {loc === "th" ? "— ต่ำกว่าค่ากลาง " : "— "}
+            <span className="font-semibold">{discountPct.toFixed(0)}%</span>{" "}
+            {loc === "th"
+              ? `(฿${Math.round(stats.median_prc).toLocaleString()}).`
+              : `below cohort median ${fmtBaht(stats.median_prc)}.`}
             {kmAdvantagePct !== null && kmAdvantagePct > 0 && (
               <>
-                Mileage <span className="font-semibold">{fmtKm(deal.mileage_km)}</span> is{" "}
+                {" "}
+                {loc === "th" ? "ไมล์" : "Mileage"}{" "}
+                <span className="font-semibold">{fmtKm(deal.mileage_km)}</span>{" "}
+                {loc === "th" ? "ต่ำกว่าเฉลี่ยกลุ่ม " : "is "}
                 <span className={isAnomaly ? "text-rose-300 font-semibold" : ""}>
-                  {kmAdvantagePct.toFixed(0)}% below
-                </span>{" "}
-                cohort median {fmtKm(stats.median_km)}.
+                  {kmAdvantagePct.toFixed(0)}%
+                </span>
+                {loc === "th"
+                  ? ` (${fmtKm(stats.median_km)}).`
+                  : ` below cohort median ${fmtKm(stats.median_km)}.`}
               </>
             )}
           </p>
 
           {isAnomaly && (
             <p className="mt-3 text-sm text-rose-300/90 italic">
-              ⚠ The combination of price gap + km gap is the rollback / flood
-              signature. <strong>Not a recommendation to buy</strong> — recommendation
-              to inspect or walk away.
+              ⚠ {tr(loc, "anomaly_subline")}
             </p>
           )}
 
@@ -176,11 +193,18 @@ function StoryCard({
             <CohortCell pct="P90" prc={stats.p90_prc} />
           </div>
           <p className="mt-2 text-[11px] text-white/35">
-            Cohort: {stats.n} listings across {stats.n_sources} source
-            {stats.n_sources > 1 ? "s" : ""}
+            {tr(loc, "cohort_summary_prefix")} {stats.n}{" "}
+            {tr(loc, "cohort_summary_listings")} {stats.n_sources}{" "}
+            {tr(
+              loc,
+              stats.n_sources > 1
+                ? "cohort_summary_sources_many"
+                : "cohort_summary_sources_one",
+            )}
             {stats.topColors.length > 0 && (
               <>
-                {" · "}top colors:{" "}
+                {" · "}
+                {tr(loc, "cohort_summary_top_colors")}{" "}
                 {stats.topColors
                   .slice(0, 3)
                   .map((c) => `${c.value} (${c.n})`)
@@ -192,9 +216,9 @@ function StoryCard({
       </div>
 
       <div className="grid md:grid-cols-3 border-t border-white/5">
-        <Section title="Drivers">
+        <Section title={tr(loc, "section_drivers")}>
           {drivers.length === 0 ? (
-            <Empty />
+            <Empty msg={tr(loc, "label_drivers_empty")} />
           ) : (
             <ul className="space-y-1.5">
               {drivers.map((d, i) => (
@@ -203,65 +227,67 @@ function StoryCard({
             </ul>
           )}
         </Section>
-        <Section title="Counterpoints" border>
+        <Section title={tr(loc, "section_counterpoints")} border>
           <ul className="space-y-1.5">
             {counterpoints.map((c, i) => (
               <li key={i}>{c}</li>
             ))}
           </ul>
         </Section>
-        <Section title="Action" border>
+        <Section title={tr(loc, "section_action")} border>
           {isAnomaly ? (
             <ul className="space-y-1.5">
               <li className="text-rose-300/90 font-medium">
-                Verify or walk away — do not deposit blind.
+                {tr(loc, "anomaly_action_headline")}
               </li>
               <li>
-                If genuine: anchor {fmtBaht(deal.prc * 0.95)}, walk-away above{" "}
-                {fmtBaht(deal.prc * 1.02)}
+                {tr(loc, "anomaly_action_genuine")
+                  .replace("{anchor}", fmtBaht(deal.prc * 0.95))
+                  .replace("{walkAway}", fmtBaht(deal.prc * 1.02))}
               </li>
-              <li>Required: เล่มทะเบียน history, service-book stamps, ECU odometer audit</li>
-              <li>Walk away if: any document gap or paint mismatch</li>
+              <li>{tr(loc, "anomaly_action_required")}</li>
+              {tr(loc, "anomaly_action_inspection") && (
+                <li>{tr(loc, "anomaly_action_inspection")}</li>
+              )}
+              <li>{tr(loc, "anomaly_action_walk")}</li>
             </ul>
           ) : (
             <ul className="space-y-1.5">
               <li>
-                Anchor offer:{" "}
+                {tr(loc, "pill_anchor")}{" "}
                 <span className="text-emerald-300 font-medium">{fmtBaht(anchor)}</span>
               </li>
               <li>
-                Walk-away above:{" "}
+                {tr(loc, "pill_walkaway")}{" "}
                 <span className="text-amber-300 font-medium">{fmtBaht(walkAway)}</span>
               </li>
               <li>
-                Headroom to median:{" "}
+                {tr(loc, "pill_headroom")}{" "}
                 <span className="text-emerald-300 font-medium">{fmtBaht(headroom)}</span>
                 {headroom > 0 && (
                   <span className="text-white/40">
-                    {" "}({((headroom / deal.prc) * 100).toFixed(0)}% upside if resold at P75)
+                    {" "}({((headroom / deal.prc) * 100).toFixed(0)}% {tr(loc, "pill_upside")})
                   </span>
                 )}
               </li>
-              <li>
-                Inspect: undercarriage (flood), engine bay, odometer auth, transmission shift
-              </li>
+              <li>{tr(loc, "inspect_priority")}</li>
             </ul>
           )}
         </Section>
       </div>
-      {photoAnalysis && <PhotoAnalysisStrip pa={photoAnalysis} />}
-      {polished && <PolishedStrip md={polished} />}
+      {photoAnalysis && <PhotoAnalysisStrip pa={photoAnalysis} loc={loc} />}
+      {polished && <PolishedStrip md={polished} loc={loc} />}
     </article>
   );
 }
 
-function PolishedStrip({ md }: { md: string }) {
+function PolishedStrip({ md, loc }: { md: string; loc: Locale }) {
   return (
     <details className="border-t border-white/5 bg-white/[0.015]">
       <summary className="cursor-pointer px-5 py-3 text-xs uppercase tracking-wider font-semibold text-[#3ba3ff]/80 hover:bg-white/[0.02] transition list-none flex items-center gap-2">
-        <span>✨ AI-polished Thai narrative</span>
+        <span>{tr(loc, "polish_summary")}</span>
         <span className="text-white/30 normal-case font-normal text-[10px]">
-          (click to expand — same numbers, conversational prose)
+          {tr(loc, "polish_summary_hint")}
         </span>
       </summary>
       <div className="px-5 pb-5 pt-1 prose-polished text-sm leading-relaxed text-white/85 max-w-none">
@@ -300,7 +326,7 @@ function PolishedStrip({ md }: { md: string }) {
   );
 }
 
-function PhotoAnalysisStrip({ pa }: { pa: PhotoAnalysis }) {
+function PhotoAnalysisStrip({ pa, loc }: { pa: PhotoAnalysis; loc: Locale }) {
   let flags: Record<string, boolean> = {};
   try {
     flags = JSON.parse(pa.flags_json);
@@ -317,16 +343,20 @@ function PhotoAnalysisStrip({ pa }: { pa: PhotoAnalysis }) {
     <div className={`border-t border-white/5 px-5 py-4 ${tone} text-sm`}>
       <div className="flex items-baseline gap-3 flex-wrap">
         <span className="text-[11px] uppercase tracking-wider font-semibold">
-          📷 photo audit
+          {tr(loc, "photo_audit")}
         </span>
-        <span className="font-semibold tabular-nums">risk {score}/100</span>
+        <span className="font-semibold tabular-nums">
+          {tr(loc, "photo_audit_score")} {score}/100
+        </span>
         {triggered.length > 0 && (
           <span className="text-xs">
-            flagged: {triggered.join(", ")}
+            {tr(loc, "photo_audit_flagged")} {triggered.join(", ")}
           </span>
         )}
         <span className="ml-auto text-[11px] opacity-70">
-          {new Date(pa.analyzed_at).toLocaleString("en-GB")}
+          {new Date(pa.analyzed_at).toLocaleString(
+            loc === "th" ? "th-TH" : "en-GB",
+          )}
         </span>
       </div>
       {pa.findings && (
@@ -391,6 +421,6 @@ function Section({
   );
 }
 
-function Empty() {
-  return <p className="text-white/30 italic text-xs">no notable drivers</p>;
+function Empty({ msg }: { msg: string }) {
+  return <p className="text-white/30 italic text-xs">{msg}</p>;
 }

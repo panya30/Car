@@ -10,6 +10,7 @@ import {
   transmissionFacet,
   type ListingsQuery,
 } from "@/lib/db";
+import { getLocale, t as tr } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
@@ -36,8 +37,9 @@ export default async function ListingsPage({
 }: {
   searchParams: Promise<SearchParams>;
 }) {
+  const loc = await getLocale();
   if (!dbExists()) {
-    return <p className="text-white/50">No data yet. Run the scraper.</p>;
+    return <p className="text-white/50">{tr(loc, "no_data")}</p>;
   }
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
@@ -72,9 +74,10 @@ export default async function ListingsPage({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Listings</h1>
+        <h1 className="text-2xl font-semibold">{tr(loc, "listings_title")}</h1>
         <p className="text-sm text-white/50 mt-1">
-          {total.toLocaleString()} cars · page {page} of {totalPages}
+          {total.toLocaleString()} {tr(loc, "listings_count_one")} ·{" "}
+          {tr(loc, "page_of")} {page} {tr(loc, "of")} {totalPages}
         </p>
       </div>
 
@@ -88,7 +91,7 @@ export default async function ListingsPage({
           defaultValue={sp.source ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="">All sources</option>
+          <option value="">{tr(loc, "all_sources")}</option>
           {sources.map((s) => (
             <option key={s.source} value={s.source}>
               {s.source} ({s.n.toLocaleString()})
@@ -100,7 +103,7 @@ export default async function ListingsPage({
           defaultValue={sp.make ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2 col-span-2"
         >
-          <option value="">All makes</option>
+          <option value="">{tr(loc, "all_makes")}</option>
           {makes.map((m) => (
             <option key={m} value={m}>
               {m}
@@ -110,21 +113,21 @@ export default async function ListingsPage({
         <input
           name="year"
           defaultValue={sp.year ?? ""}
-          placeholder="Year"
+          placeholder={tr(loc, "placeholder_year")}
           inputMode="numeric"
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         />
         <input
           name="min"
           defaultValue={sp.min ?? ""}
-          placeholder="Min ฿"
+          placeholder={tr(loc, "placeholder_min")}
           inputMode="numeric"
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         />
         <input
           name="max"
           defaultValue={sp.max ?? ""}
-          placeholder="Max ฿"
+          placeholder={tr(loc, "placeholder_max")}
           inputMode="numeric"
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         />
@@ -133,18 +136,18 @@ export default async function ListingsPage({
           defaultValue={sp.sort ?? "year_desc"}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="year_desc">Newest year</option>
-          <option value="price_desc">Price ↓</option>
-          <option value="price_asc">Price ↑</option>
-          <option value="mileage_asc">Lowest km</option>
-          <option value="views_desc">Most viewed</option>
+          <option value="year_desc">{tr(loc, "sort_year_desc")}</option>
+          <option value="price_desc">{tr(loc, "sort_price_desc")}</option>
+          <option value="price_asc">{tr(loc, "sort_price_asc")}</option>
+          <option value="mileage_asc">{tr(loc, "sort_mileage_asc")}</option>
+          <option value="views_desc">{tr(loc, "sort_views_desc")}</option>
         </select>
         <select
           name="fuel"
           defaultValue={sp.fuel ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="">Any fuel</option>
+          <option value="">{tr(loc, "any_fuel")}</option>
           {fuels.map((f) => (
             <option key={f.value} value={f.value}>
               {f.value} ({f.n.toLocaleString()})
@@ -156,7 +159,7 @@ export default async function ListingsPage({
           defaultValue={sp.trans ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="">Any transmission</option>
+          <option value="">{tr(loc, "any_transmission")}</option>
           {transmissions.map((t) => (
             <option key={t.value} value={t.value}>
               {t.value.length > 22 ? t.value.slice(0, 22) + "…" : t.value} ({t.n.toLocaleString()})
@@ -168,7 +171,7 @@ export default async function ListingsPage({
           defaultValue={sp.body ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="">Any body</option>
+          <option value="">{tr(loc, "any_body")}</option>
           {bodies.map((b) => (
             <option key={b.value} value={b.value}>
               {b.value} ({b.n.toLocaleString()})
@@ -180,7 +183,7 @@ export default async function ListingsPage({
           defaultValue={sp.color ?? ""}
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         >
-          <option value="">Any color</option>
+          <option value="">{tr(loc, "any_color")}</option>
           {colors.map((c) => (
             <option key={c.value} value={c.value}>
               {c.value} ({c.n.toLocaleString()})
@@ -190,21 +193,21 @@ export default async function ListingsPage({
         <input
           name="maxkm"
           defaultValue={sp.maxkm ?? ""}
-          placeholder="Max km"
+          placeholder={tr(loc, "placeholder_max_km")}
           inputMode="numeric"
           className="bg-white/5 border border-white/10 rounded px-2 py-2"
         />
         <input
           name="q"
           defaultValue={sp.q ?? ""}
-          placeholder="Search title…"
+          placeholder={tr(loc, "placeholder_search")}
           className="bg-white/5 border border-white/10 rounded px-2 py-2 col-span-3 md:col-span-5"
         />
         <button
           type="submit"
           className="bg-[#3ba3ff] hover:bg-[#3ba3ff]/85 rounded text-black font-medium"
         >
-          Filter
+          {tr(loc, "btn_filter")}
         </button>
       </form>
 
@@ -260,7 +263,7 @@ export default async function ListingsPage({
                     {r.mileage_km != null
                       ? `${r.mileage_km.toLocaleString()} km`
                       : r.ipgvw != null
-                        ? `${r.ipgvw.toLocaleString()} views`
+                        ? `${r.ipgvw.toLocaleString()} ${tr(loc, "suffix_views")}`
                         : ""}
                   </div>
                 </div>
@@ -295,10 +298,17 @@ export default async function ListingsPage({
       </div>
 
       {rows.length === 0 && (
-        <p className="text-white/40 text-sm">No matches.</p>
+        <p className="text-white/40 text-sm">{tr(loc, "no_matches")}</p>
       )}
 
-      <Pagination current={page} total={totalPages} sp={sp} />
+      <Pagination
+        current={page}
+        total={totalPages}
+        sp={sp}
+        prevLabel={tr(loc, "pagination_prev")}
+        nextLabel={tr(loc, "pagination_next")}
+        pageLabel={tr(loc, "page_of")}
+      />
     </div>
   );
 }
@@ -319,10 +329,16 @@ function Pagination({
   current,
   total,
   sp,
+  prevLabel,
+  nextLabel,
+  pageLabel,
 }: {
   current: number;
   total: number;
   sp: SearchParams;
+  prevLabel: string;
+  nextLabel: string;
+  pageLabel: string;
 }) {
   if (total <= 1) return null;
   const pageHref = (p: number) => {
@@ -336,7 +352,7 @@ function Pagination({
   return (
     <div className="flex items-center justify-between text-sm pt-4">
       <div className="text-white/40">
-        page {current} / {total}
+        {pageLabel} {current} / {total}
       </div>
       <div className="flex gap-2">
         {current > 1 && (
@@ -344,7 +360,7 @@ function Pagination({
             href={pageHref(current - 1)}
             className="px-3 py-1.5 border border-white/10 rounded hover:bg-white/5"
           >
-            ← prev
+            {prevLabel}
           </Link>
         )}
         {current < total && (
@@ -352,7 +368,7 @@ function Pagination({
             href={pageHref(current + 1)}
             className="px-3 py-1.5 border border-white/10 rounded hover:bg-white/5"
           >
-            next →
+            {nextLabel}
           </Link>
         )}
       </div>

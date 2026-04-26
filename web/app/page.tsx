@@ -2,11 +2,13 @@ import Link from "next/link";
 import {
   dbExists, totals, topMakes, yearDistribution, listRuns, allSources,
 } from "@/lib/db";
+import { getLocale, t as tr } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
-  if (!dbExists()) return <Empty />;
+export default async function Home() {
+  const loc = await getLocale();
+  if (!dbExists()) return <Empty msg={tr(loc, "no_data")} />;
 
   const t = totals();
   const makes = topMakes(15);
@@ -14,7 +16,7 @@ export default function Home() {
   const runs = listRuns(5);
   const sources = allSources();
 
-  if (!t.ts) return <Empty />;
+  if (!t.ts) return <Empty msg={tr(loc, "no_data")} />;
 
   const maxYearN = Math.max(1, ...years.map((y) => y.n));
   const maxMakeN = Math.max(1, ...makes.map((m) => m.n));
@@ -22,17 +24,17 @@ export default function Home() {
   return (
     <div className="space-y-10">
       <section>
-        <h1 className="text-2xl font-semibold tracking-tight">Overview</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">{tr(loc, "overview_title")}</h1>
         <p className="text-sm text-white/50 mt-1">
-          Latest snapshot: <time className="text-white/80">{fmtTs(t.ts)}</time>
+          {tr(loc, "overview_latest")} <time className="text-white/80">{fmtTs(t.ts)}</time>
         </p>
       </section>
 
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Stat label="Cars in latest" value={t.inLatest.toLocaleString()} />
-        <Stat label="Distinct cars ever" value={t.uniqueCids.toLocaleString()} />
-        <Stat label="Snapshots" value={t.snapshots.toString()} />
-        <Stat label="Total rows" value={t.totalRows.toLocaleString()} />
+        <Stat label={tr(loc, "stat_in_latest")} value={t.inLatest.toLocaleString()} />
+        <Stat label={tr(loc, "stat_distinct_ever")} value={t.uniqueCids.toLocaleString()} />
+        <Stat label={tr(loc, "stat_snapshots")} value={t.snapshots.toString()} />
+        <Stat label={tr(loc, "stat_total_rows")} value={t.totalRows.toLocaleString()} />
       </section>
 
       <section className="flex flex-wrap gap-2 text-sm">
@@ -49,14 +51,14 @@ export default function Home() {
       </section>
 
       <section className="grid lg:grid-cols-2 gap-8">
-        <Card title="Top makes (latest)">
+        <Card title={tr(loc, "card_top_makes")}>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-white/40 text-xs uppercase tracking-wide">
-                <th className="text-left font-medium pb-2">Make</th>
-                <th className="text-right font-medium pb-2">N</th>
-                <th className="text-right font-medium pb-2">Avg ฿</th>
-                <th className="text-right font-medium pb-2">Range ฿</th>
+                <th className="text-left font-medium pb-2">{tr(loc, "th_make")}</th>
+                <th className="text-right font-medium pb-2">{tr(loc, "th_n")}</th>
+                <th className="text-right font-medium pb-2">{tr(loc, "th_avg_price")}</th>
+                <th className="text-right font-medium pb-2">{tr(loc, "th_range")}</th>
                 <th />
               </tr>
             </thead>
@@ -89,7 +91,7 @@ export default function Home() {
           </table>
         </Card>
 
-        <Card title="Year distribution">
+        <Card title={tr(loc, "card_year_dist")}>
           <div className="space-y-1.5">
             {years.map((y) => (
               <div key={y.yr4} className="flex items-center gap-3 text-sm">
@@ -107,7 +109,7 @@ export default function Home() {
       </section>
 
       <section>
-        <Card title="Recent scrape runs">
+        <Card title={tr(loc, "card_recent_runs")}>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-white/40 text-xs uppercase tracking-wide">
@@ -192,14 +194,10 @@ function Status({ status }: { status: string | null }) {
   );
 }
 
-function Empty() {
+function Empty({ msg }: { msg: string }) {
   return (
     <div className="text-center py-24 text-white/50">
-      <h1 className="text-xl mb-2">No data yet</h1>
-      <p className="text-sm">
-        Run <code className="text-white/80">python scraper.py</code> from the repo
-        root, then refresh.
-      </p>
+      <p className="text-sm">{msg}</p>
     </div>
   );
 }
