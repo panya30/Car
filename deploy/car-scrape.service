@@ -1,0 +1,27 @@
+# Car — daily scrape + post-scrape pipeline
+# Triggered by car-scrape.timer, not user-startable directly.
+[Unit]
+Description=Car — daily multi-source scrape and pipeline
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=modz
+Group=modz
+WorkingDirectory=/home/modz/Car
+EnvironmentFile=-/home/modz/Car/.env
+
+# Skip one2car (Cloudflare) by default — enable separately once Playwright
+# is configured. Sleep 8s between requests; pipeline runs after each pass.
+ExecStart=/usr/bin/python3 /home/modz/Car/scrape_all.py \
+    --skip one2car \
+    --sleep 4 \
+    --sleep-taladrod 8 \
+    --note "scheduled daily run"
+
+# Don't kill the run when timer next fires — let it finish or the next
+# trigger will be missed (Persistent=true on the timer handles that).
+TimeoutStartSec=8h
+StandardOutput=journal
+StandardError=journal

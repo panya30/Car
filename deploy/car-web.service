@@ -1,0 +1,33 @@
+# Car — Next.js production UI
+# Install:  cp deploy/car-web.service /etc/systemd/system/
+#           systemctl daemon-reload && systemctl enable --now car-web
+[Unit]
+Description=Car (Taladrod stats) — Next.js production UI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=modz
+Group=modz
+WorkingDirectory=/home/modz/Car/web
+
+# Use the same `bun` Indicator uses
+ExecStart=/home/modz/.bun/bin/bun run start
+Environment=NODE_ENV=production
+Environment=PORT=3344
+EnvironmentFile=-/home/modz/Car/.env
+
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+# Light hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/modz/Car/data /home/modz/Car/web/.next
+
+[Install]
+WantedBy=multi-user.target

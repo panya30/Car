@@ -84,3 +84,18 @@ schedule-tail:
 
 clean:
 	rm -rf __pycache__ scrapers/__pycache__
+
+# --- remote deploy (see deploy/README.md) ---
+.PHONY: deploy deploy-logs deploy-scrape deploy-status
+
+deploy:
+	bash deploy/sync.sh
+
+deploy-logs:
+	ssh $${CAR_HOST:-modz@204.168.243.132} 'journalctl -u car-web -n 80 --no-pager; echo ---; systemctl list-timers car-scrape.timer --no-pager'
+
+deploy-scrape:
+	ssh $${CAR_HOST:-modz@204.168.243.132} 'sudo systemctl start car-scrape.service && journalctl -u car-scrape -f'
+
+deploy-status:
+	ssh $${CAR_HOST:-modz@204.168.243.132} 'systemctl status car-web --no-pager; echo ---; systemctl status car-scrape.timer --no-pager'
