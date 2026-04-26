@@ -70,6 +70,19 @@ def one_pass(args) -> dict[str, bool]:
         sleep_s = args.sleep_taladrod if source == "taladrod" else args.sleep
         ok = _run_source(source, sleep_s, note)
         results[source] = ok
+
+    # Post-scrape: rebuild matches → regenerate stories → photo verify → LINE.
+    # Each step skips itself when the relevant API key/cookie isn't set, so
+    # this is safe to run unconditionally.
+    if not getattr(args, "no_pipeline", False):
+        try:
+            from pipeline import run_pipeline
+            print("\n=== post-scrape pipeline ===", flush=True)
+            res = run_pipeline()
+            for step, summary in res.items():
+                print(f"  {step}: {summary}", flush=True)
+        except Exception as e:
+            print(f"  pipeline FAILED: {e}", flush=True)
     return results
 
 
@@ -89,6 +102,8 @@ def main():
     ap.add_argument("--jitter", default="0",
                     help="random extra wait per loop iteration (e.g. 30m)")
     ap.add_argument("--note", default=None)
+    ap.add_argument("--no-pipeline", action="store_true",
+                    help="skip post-scrape matches/stories/photos/LINE pipeline")
     args = ap.parse_args()
 
     if not args.loop:

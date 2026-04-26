@@ -92,6 +92,50 @@ CREATE TABLE IF NOT EXISTS models (
     PRIMARY KEY (mk, md)
 );
 
+CREATE TABLE IF NOT EXISTS cached_stories (
+    cohort_key     TEXT PRIMARY KEY,   -- "TOYOTA|HILUX REVO|2021"
+    make           TEXT,
+    model          TEXT,
+    yr4            INTEGER,
+    classification TEXT,                -- deal | anomaly | fair | overpriced
+    cid            TEXT,
+    source         TEXT,
+    discount_pct   REAL,
+    km_gap_pct     REAL,
+    story_json     TEXT,                -- full Story object as JSON
+    llm_polished   TEXT,                -- optional LLM rewrite
+    generated_at   TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_cached_stories_class ON cached_stories(classification);
+
+CREATE TABLE IF NOT EXISTS alerts (
+    alert_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    kind         TEXT NOT NULL,         -- anomaly | deal | spread
+    cid          TEXT,
+    cohort_key   TEXT,
+    severity     TEXT,                  -- info | warn | red
+    title        TEXT,
+    detail       TEXT,
+    payload_json TEXT,
+    created_at   TEXT NOT NULL,
+    notified_at  TEXT,                  -- set when LINE push succeeds
+    seen_at      TEXT                   -- set when user dismisses in UI
+);
+CREATE INDEX IF NOT EXISTS idx_alerts_unseen ON alerts(seen_at) WHERE seen_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_alerts_unnot  ON alerts(notified_at) WHERE notified_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_alerts_created ON alerts(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS photo_analyses (
+    cid          TEXT PRIMARY KEY,
+    img_url      TEXT,
+    model_id     TEXT,                  -- claude-sonnet-4-6, etc.
+    risk_score   INTEGER,               -- 0-100
+    findings     TEXT,                  -- bullet-list narrative
+    flags_json   TEXT,                  -- {"flood": bool, "paint_mismatch": bool, ...}
+    raw_response TEXT,
+    analyzed_at  TEXT
+);
+
 CREATE VIEW IF NOT EXISTS latest_listings AS
 SELECT l.*
 FROM listings l

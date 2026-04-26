@@ -21,6 +21,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <NavLink href="/listings">Listings</NavLink>
             <NavLink href="/stories">Stories</NavLink>
             <NavLink href="/matches">Matches</NavLink>
+            <NavLink href="/alerts">Alerts</NavLink>
             <NavLink href="/runs">Runs</NavLink>
           </nav>
         </header>

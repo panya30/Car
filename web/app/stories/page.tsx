@@ -1,4 +1,11 @@
-import { topStories, type Classification, type Story } from "@/lib/stories";
+import {
+  fetchCachedStories,
+  topStories,
+  type CachedStory,
+  type Classification,
+  type PhotoAnalysis,
+  type Story,
+} from "@/lib/stories";
 
 export const dynamic = "force-dynamic";
 
@@ -20,38 +27,63 @@ function fmtKm(x: number | null) {
 }
 
 export default function StoriesPage() {
-  const stories = topStories(8);
+  // Prefer cached stories (precomputed by `python regenerate_stories.py`).
+  // Fall back to live compute if the cache is empty.
+  const cached = fetchCachedStories({ limit: 30 });
+  const stories: (Story | CachedStory)[] =
+    cached.length > 0 ? cached : topStories(8);
+  const cachedAt = cached[0]?.generated_at;
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">Story Units</h1>
         <p className="text-sm text-white/50 mt-1">
-          Indicator-style 6-section reports. Each is the top-ranked listing in
-          its make/model/year cohort, with cohort statistics computed live from
-          the SQLite snapshot. <span className="text-rose-300">ANOMALY</span> means
-          the price+mileage gap fits the rollback / flood-rebrand signature —
-          treat as <em>verify or walk away</em>, not <em>buy</em>.
+          Cohort-indexed 6-section reports.{" "}
+          <span className="text-rose-300">ANOMALY</span> = price+km gap fits
+          the rollback / flood-rebrand signature, treat as <em>verify or
+          walk away</em>.{" "}
+          <span className="text-emerald-300">DEAL</span> = top-quartile cohort
+          value.{" "}
+          <span className="text-amber-300">FAIR</span> = priced near median.
+          {cachedAt && (
+            <span className="block text-[11px] text-white/30 mt-1">
+              cached at {new Date(cachedAt).toLocaleString("en-GB")} ·
+              regenerate with{" "}
+              <code className="text-white/60">python regenerate_stories.py</code>
+            </span>
+          )}
         </p>
       </header>
 
       {stories.length === 0 && (
         <p className="text-white/50 text-sm">
-          No stories — need at least 10 listings per cohort. Run more scrape
-          passes.
+          No stories — need at least 25 listings per cohort. Run more scrape
+          passes, then{" "}
+          <code className="text-white/70">python pipeline.py</code>.
         </p>
       )}
 
       <div className="space-y-8">
         {stories.map((s) => (
-          <StoryCard key={`${s.cohort.make}-${s.cohort.model}-${s.cohort.year}`} story={s} />
+          <StoryCard
+            key={`${s.cohort.make}-${s.cohort.model}-${s.cohort.year}`}
+            story={s}
+            photoAnalysis={"photoAnalysis" in s ? s.photoAnalysis : undefined}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function StoryCard({ story: s }: { story: Story }) {
+function StoryCard({
+  story: s,
+  photoAnalysis,
+}: {
+  story: Story;
+  photoAnalysis?: PhotoAnalysis;
+}) {
   const { deal, stats, cohort, classification, discountPct, kmAdvantagePct,
           drivers, counterpoints } = s;
   const badge = BADGES[classification];
@@ -209,7 +241,48 @@ function StoryCard({ story: s }: { story: Story }) {
           )}
         </Section>
       </div>
+      {photoAnalysis && <PhotoAnalysisStrip pa={photoAnalysis} />}
     </article>
+  );
+}
+
+function PhotoAnalysisStrip({ pa }: { pa: PhotoAnalysis }) {
+  let flags: Record<string, boolean> = {};
+  try {
+    flags = JSON.parse(pa.flags_json);
+  } catch {}
+  const triggered = Object.entries(flags).filter(([, v]) => v).map(([k]) => k);
+  const score = pa.risk_score ?? 0;
+  const tone =
+    score >= 60
+      ? "bg-rose-500/10 border-rose-500/30 text-rose-200"
+      : score >= 30
+        ? "bg-amber-500/10 border-amber-500/30 text-amber-200"
+        : "bg-emerald-500/10 border-emerald-500/30 text-emerald-200";
+  return (
+    <div className={`border-t border-white/5 px-5 py-4 ${tone} text-sm`}>
+      <div className="flex items-baseline gap-3 flex-wrap">
+        <span className="text-[11px] uppercase tracking-wider font-semibold">
+          📷 photo audit
+        </span>
+        <span className="font-semibold tabular-nums">risk {score}/100</span>
+        {triggered.length > 0 && (
+          <span className="text-xs">
+            flagged: {triggered.join(", ")}
+          </span>
+        )}
+        <span className="ml-auto text-[11px] opacity-70">
+          {new Date(pa.analyzed_at).toLocaleString("en-GB")}
+        </span>
+      </div>
+      {pa.findings && (
+        <ul className="mt-2 text-xs space-y-0.5 list-disc list-inside opacity-90">
+          {pa.findings.split("\n").map((f, i) => (
+            <li key={i}>{f}</li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

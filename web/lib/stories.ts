@@ -261,3 +261,130 @@ export function topStories(n = 6): Story[] {
   }
   return out;
 }
+
+// --- Cached-story reader (preferred path; falls back to live compute) ---
+
+export type CachedStory = Story & {
+  generated_at: string;
+  photoAnalysis?: PhotoAnalysis;
+};
+
+export type PhotoAnalysis = {
+  cid: string;
+  risk_score: number | null;
+  findings: string;
+  flags_json: string;
+  analyzed_at: string;
+};
+
+export function fetchCachedStories(opts: {
+  classifications?: Classification[];
+  limit?: number;
+} = {}): CachedStory[] {
+  const { classifications, limit = 50 } = opts;
+  const where = classifications
+    ? `WHERE classification IN (${classifications.map(() => "?").join(",")})`
+    : "";
+  const sql = `
+    SELECT cs.cohort_key, cs.classification, cs.discount_pct, cs.km_gap_pct,
+           cs.story_json, cs.generated_at,
+           pa.cid AS pa_cid, pa.risk_score AS pa_risk,
+           pa.findings AS pa_findings, pa.flags_json AS pa_flags,
+           pa.analyzed_at AS pa_analyzed
+    FROM cached_stories cs
+    LEFT JOIN photo_analyses pa ON pa.cid = cs.cid
+    ${where}
+    ORDER BY
+      CASE cs.classification
+        WHEN 'anomaly' THEN 0
+        WHEN 'deal'    THEN 1
+        WHEN 'fair'    THEN 2
+        ELSE 3 END,
+      ABS(cs.discount_pct) DESC
+    LIMIT ?
+  `;
+  const params = [...(classifications ?? []), limit];
+  const rows = getDb().prepare(sql).all(...params) as any[];
+  const out: CachedStory[] = [];
+  for (const r of rows) {
+    let parsed: any;
+    try { parsed = JSON.parse(r.story_json); } catch { continue; }
+    const story = buildStoryFromPayload(parsed, r.classification);
+    if (!story) continue;
+    const wrapped: CachedStory = {
+      ...story,
+      generated_at: r.generated_at,
+    };
+    if (r.pa_cid) {
+      wrapped.photoAnalysis = {
+        cid: r.pa_cid,
+        risk_score: r.pa_risk,
+        findings: r.pa_findings,
+        flags_json: r.pa_flags,
+        analyzed_at: r.pa_analyzed,
+      };
+    }
+    out.push(wrapped);
+  }
+  return out;
+}
+
+function buildStoryFromPayload(p: any, cls: Classification): Story | null {
+  if (!p?.deal || !p?.stats || !p?.cohort) return null;
+  // Reconstruct drivers + counterpoints deterministically from payload.
+  const stats: CohortStats = {
+    n: p.stats.n,
+    n_sources: p.stats.n_sources,
+    median_prc: p.stats.median_prc,
+    p10_prc: p.stats.p10_prc,
+    p25_prc: p.stats.p25_prc,
+    p75_prc: p.stats.p75_prc,
+    p90_prc: p.stats.p90_prc,
+    median_km: p.stats.median_km,
+    p25_km: p.stats.p25_km,
+    p75_km: p.stats.p75_km,
+    topColors: p.stats.topColors ?? [],
+    topFuels: p.stats.topFuels ?? [],
+  };
+  const deal: CohortRow = {
+    cid: p.deal.cid, source: p.deal.source, prc: p.deal.prc,
+    yr4: p.deal.yr4, amake: p.cohort.make, amodel: p.cohort.model,
+    atrim: null, mileage_km: p.deal.mileage_km, color: p.deal.color,
+    fuel: p.deal.fuel, transmission: p.deal.transmission,
+    body_type: p.deal.body_type, seller_name: p.deal.seller_name,
+    seller_type: null, location: p.deal.location, url: p.deal.url,
+    title: p.deal.title, img: p.deal.img,
+  };
+  const discountPct = p.discount_pct ?? 0;
+  const kmGapPct = p.km_gap_pct ?? null;
+
+  const drivers: string[] = [];
+  const counterpoints: string[] = [];
+  if (kmGapPct !== null && kmGapPct > 5) {
+    const line = `Mileage: ${deal.mileage_km!.toLocaleString()} km vs cohort median ${Math.round(stats.median_km!).toLocaleString()} km (${kmGapPct.toFixed(0)}% below typical)`;
+    if (cls === "anomaly" && kmGapPct > 50) {
+      counterpoints.push(`${line} — combined with the ${discountPct.toFixed(0)}% price discount this is the rollback / flood-rebrand signature. Verify or walk away.`);
+    } else {
+      drivers.push(line);
+    }
+  }
+  if (deal.color) drivers.push(`Color: ${deal.color}`);
+  if (deal.transmission) drivers.push(`Transmission: ${deal.transmission}`);
+  if (deal.fuel) drivers.push(`Fuel: ${deal.fuel}`);
+  if (deal.location) drivers.push(`Location: ${deal.location}`);
+  if (deal.seller_name) drivers.push(`Seller: ${deal.seller_name}`);
+  if (counterpoints.length === 0) {
+    counterpoints.push("Always commission an independent inspection before deposit (Thai market: flood + odometer rollback risk).");
+  }
+
+  return {
+    cohort: p.cohort,
+    stats,
+    deal,
+    classification: cls,
+    discountPct,
+    kmAdvantagePct: kmGapPct,
+    drivers,
+    counterpoints,
+  };
+}

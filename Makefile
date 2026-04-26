@@ -37,6 +37,25 @@ smoke:
 stats:
 	python3 stats.py
 
+# --- post-scrape pipeline (matches → stories → photos → LINE) ---
+pipeline:
+	python3 pipeline.py
+
+regenerate-stories:
+	python3 regenerate_stories.py
+
+cross-source:
+	python3 cross_source.py --top 25
+
+photo-verify:
+	python3 photo_verify.py --only-anomaly --limit 30
+
+line-push-dry:
+	python3 line_alerts.py --dry-run
+
+line-push:
+	python3 line_alerts.py
+
 shell:
 	sqlite3 data/cars.db
 
