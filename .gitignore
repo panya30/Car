@@ -15,3 +15,4 @@ data/*.db-shm
 data/*.log
 data/*.csv
 data/dump.sql
+.env.local

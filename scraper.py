@@ -16,6 +16,7 @@ import http.cookiejar
 import json
 import random
 import re
+import socket
 import time
 import urllib.request
 from datetime import datetime, timezone
@@ -23,6 +24,10 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request
 
 from db import connect, init
+
+# Hard floor on socket I/O so a wedged TLS handshake or stuck CloudFront
+# challenge response cannot pin the crawler indefinitely.
+socket.setdefaulttimeout(30)
 
 URL = "https://www.taladrod.com/w40/isch/schc.aspx"
 HEADERS = {
@@ -179,8 +184,10 @@ def log(msg):
 
 def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
     seen = set()
-    rows = []
+    pending = []  # buffered rows committed per-make so the UI sees progress
     queries_run = 0
+    consecutive_wafs = 0
+    WAF_GIVEUP = 5  # bail the whole run if WAF stays angry this many times in a row
 
     def absorb(data, label):
         nonlocal queries_run
@@ -193,10 +200,24 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
             if not cid or cid in seen:
                 continue
             seen.add(cid)
-            rows.append(car_to_row(car, scraped_at, run_id))
+            pending.append(car_to_row(car, scraped_at, run_id))
             new += 1
         log(f"  {label}: cars={len(cars)} ncar={ncar} new={new} total={len(seen)}")
         return ncar
+
+    def flush(label=""):
+        nonlocal pending
+        if not pending:
+            return
+        conn.executemany(INSERT_SQL, pending)
+        conn.execute(
+            "UPDATE scrape_runs SET cars_seen=?, cars_unique=? WHERE run_id=?",
+            (len(seen), len(seen), run_id),
+        )
+        conn.commit()
+        if label:
+            log(f"    flushed {len(pending)} rows{' after ' + label if label else ''}")
+        pending = []
 
     log("Step 1: fetch fno:all")
     try:
@@ -205,6 +226,7 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
         log(f"FATAL: {e}. Cool-down and retry, or use Playwright/curl-cffi (see README).")
         raise
     absorb(root, "fno:all")
+    flush()
     makes = root.get("lists", []) or []
     log(f"Discovered {len(makes)} makes")
 
@@ -235,13 +257,20 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
         time.sleep(sleep_s + random.uniform(0, sleep_s * 0.3))
         try:
             page = fetch_query(f"mk:{mk}")
-        except WAFBlocked as e:
-            log(f"  [{i}/{len(makes)}] mk:{mk} ({name}) WAF block, sleeping 60s")
-            time.sleep(60)
+            consecutive_wafs = 0
+        except WAFBlocked:
+            consecutive_wafs += 1
+            wait = min(60 * consecutive_wafs, 300)
+            log(f"  [{i}/{len(makes)}] mk:{mk} ({name}) WAF block #{consecutive_wafs}; sleeping {wait}s")
+            if consecutive_wafs >= WAF_GIVEUP:
+                log(f"  giving up after {consecutive_wafs} consecutive WAF blocks")
+                break
+            time.sleep(wait)
             try:
                 page = fetch_query(f"mk:{mk}")
+                consecutive_wafs = 0
             except Exception as e2:
-                log(f"  [{i}/{len(makes)}] mk:{mk} ({name}) WAF retry FAILED: {e2}")
+                log(f"  [{i}/{len(makes)}] mk:{mk} ({name}) retry FAILED: {e2}")
                 continue
         except Exception as e:
             log(f"  [{i}/{len(makes)}] mk:{mk} ({name}) FAILED: {e}")
@@ -273,11 +302,19 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
             time.sleep(sleep_s + random.uniform(0, sleep_s * 0.3))
             try:
                 page2 = fetch_query(f"mk:{mk}+md:{md}")
+                consecutive_wafs = 0
             except WAFBlocked:
-                log(f"    [{j}/{len(models)}] mk:{mk}+md:{md} WAF block, sleeping 60s")
-                time.sleep(60)
+                consecutive_wafs += 1
+                wait = min(60 * consecutive_wafs, 300)
+                log(f"    [{j}/{len(models)}] mk:{mk}+md:{md} WAF block #{consecutive_wafs}; sleeping {wait}s")
+                if consecutive_wafs >= WAF_GIVEUP:
+                    log("    giving up: too many consecutive WAF blocks")
+                    flush(label=name)
+                    return queries_run, len(seen), len(seen)
+                time.sleep(wait)
                 try:
                     page2 = fetch_query(f"mk:{mk}+md:{md}")
+                    consecutive_wafs = 0
                 except Exception as e2:
                     log(f"    [{j}/{len(models)}] mk:{mk}+md:{md} ({mname}) retry FAILED: {e2}")
                     continue
@@ -285,11 +322,15 @@ def crawl(conn, run_id, scraped_at, sleep_s, max_makes=None, smoke=False):
                 log(f"    [{j}/{len(models)}] mk:{mk}+md:{md} ({mname}) FAILED: {e}")
                 continue
             absorb(page2, f"    [{j}/{len(models)}] mk:{mk}+md:{md} {mname}")
+            # Flush every 5 models so the UI sees progress on big makes (Toyota
+            # has 51 models — waiting for the whole make to finish takes minutes).
+            if j % 5 == 0:
+                flush()
 
-    log(f"Inserting {len(rows)} rows...")
-    conn.executemany(INSERT_SQL, rows)
-    conn.commit()
-    return queries_run, len(rows), len(seen)
+        flush(label=name)
+
+    flush()
+    return queries_run, len(seen), len(seen)
 
 
 def run(sleep_s=DEFAULT_SLEEP, max_makes=None, smoke=False, note=None):

@@ -6,3 +6,11 @@
 #   pip install -r requirements.txt
 #
 curl-cffi>=0.7.0
+
+# Pipeline LLM steps (photo audit + Story Unit polish via OpenAI gpt-4o):
+openai>=1.50.0
+python-dotenv>=1.0.0
+
+# one2car only (Cloudflare-protected, needs a real headless browser):
+playwright>=1.45.0
+playwright-stealth>=2.0.0

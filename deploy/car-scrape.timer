@@ -1,0 +1,16 @@
+# Car — fire car-scrape.service once a day
+[Unit]
+Description=Daily Car scrape
+
+[Timer]
+# 03:30 local + up to 30 min of jitter so we don't hammer at the same
+# minute every night.
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=30min
+
+# If the box was off at 03:30, run as soon as it comes back up
+Persistent=true
+Unit=car-scrape.service
+
+[Install]
+WantedBy=timers.target

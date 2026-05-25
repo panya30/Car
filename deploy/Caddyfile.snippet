@@ -1,0 +1,18 @@
+# Car — append to /etc/caddy/Caddyfile (or /etc/caddy/sites/car)
+# Caddy handles TLS automatically via Let's Encrypt.
+#
+# Replace `car.example.com` with whatever subdomain you point an A record at.
+
+car.example.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:3344
+
+    # Static asset caching (Next.js fingerprints filenames so they're safe)
+    @static path /_next/static/* /favicon.ico
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    log {
+        output file /var/log/caddy/car.log
+        format console
+    }
+}

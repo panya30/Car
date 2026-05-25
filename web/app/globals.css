@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Theme tokens — light by default, dark via [data-theme="dark"]
+   ============================================================ */
+
+@theme {
+  --color-fg:        #1D1D1F;          /* primary text */
+  --color-fg-2:      #515156;          /* secondary text */
+  --color-fg-3:      #86868B;          /* tertiary / placeholder */
+  --color-bg:        #FBFBFD;          /* page background */
+  --color-surface:   #FFFFFF;          /* cards, fields */
+  --color-surface-2: #F5F5F7;          /* sidebar, hover, subdued */
+  --color-line:      rgba(0, 0, 0, 0.08);
+  --color-line-soft: rgba(0, 0, 0, 0.04);
+  --color-accent:    #0066CC;          /* macOS blue, light variant */
+  --color-accent-fg: #FFFFFF;
+
+  --color-pos:    #2C8056;
+  --color-pos-bg: #E5F4EC;
+  --color-warn:   #B25E12;
+  --color-warn-bg:#FBEFD9;
+  --color-neg:    #B6242C;
+  --color-neg-bg: #FAE4E5;
+
+  /* Bumped type scale — every text-xs/sm/base/lg/... util grows by ~one
+     step.  Body lands at 16px (Apple HIG default for content). */
+  --text-xs:   13px;
+  --text-xs--line-height: 1.45;
+  --text-sm:   15px;
+  --text-sm--line-height: 1.5;
+  --text-base: 16px;
+  --text-base--line-height: 1.55;
+  --text-lg:   18px;
+  --text-lg--line-height: 1.5;
+  --text-xl:   22px;
+  --text-xl--line-height: 1.4;
+  --text-2xl:  26px;
+  --text-2xl--line-height: 1.3;
+  --text-3xl:  34px;
+  --text-3xl--line-height: 1.2;
+  --text-4xl:  44px;
+  --text-4xl--line-height: 1.1;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Inter", "Segoe UI", "Helvetica Neue", system-ui,
+    "Noto Sans Thai", sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display",
+    "SF Pro Text", "Inter", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Menlo", "Cascadia Code",
+    "Roboto Mono", monospace;
+}
+
+[data-theme="dark"] {
+  --color-fg:        #F5F5F7;
+  --color-fg-2:      rgba(245, 245, 247, 0.62);
+  --color-fg-3:      rgba(245, 245, 247, 0.38);
+  --color-bg:        #1A1A1C;
+  --color-surface:   #232326;
+  --color-surface-2: #2C2C2F;
+  --color-line:      rgba(255, 255, 255, 0.08);
+  --color-line-soft: rgba(255, 255, 255, 0.04);
+  --color-accent:    #0A84FF;
+  --color-accent-fg: #FFFFFF;
+
+  --color-pos:    #69D89E;
+  --color-pos-bg: rgba(105, 216, 158, 0.14);
+  --color-warn:   #FFB554;
+  --color-warn-bg:rgba(255, 181, 84, 0.14);
+  --color-neg:    #FF6973;
+  --color-neg-bg: rgba(255, 105, 115, 0.14);
+}
+
+html { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.55;
+  font-feature-settings: "cv11" 1, "ss01" 1, "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* ============================================================
+   Surfaces — flat, no decoration; depth via subtle borders
+   ============================================================ */
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 10px;
+}
+.surface-2 {
+  background: var(--color-surface-2);
+  border-radius: 10px;
+}
+
+/* ============================================================
+   Form controls
+   ============================================================ */
+
+.field {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  color: var(--color-fg);
+  font-size: 15px;
+  padding: 8px 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: var(--font-sans);
+}
+.field:focus,
+.field:focus-visible {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+.field::placeholder { color: var(--color-fg-3); }
+
+/* Buttons */
+.btn {
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+.btn:hover {
+  background: color-mix(in srgb, var(--color-fg) 6%, var(--color-surface-2));
+}
+.btn-primary {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: filter 0.12s ease;
+}
+.btn-primary:hover { filter: brightness(1.07); }
+.btn-primary:active { filter: brightness(0.95); }
+
+/* Segmented control */
+.segmented {
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 2px;
+  display: inline-flex;
+  gap: 2px;
+}
+.segmented > * {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: var(--color-fg-2);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.segmented > .seg-active {
+  background: var(--color-surface);
+  color: var(--color-fg);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] .segmented > .seg-active {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================================
+   Sidebar / toolbar
+   ============================================================ */
+
+.sidebar {
+  background: var(--color-surface-2);
+  border-right: 1px solid var(--color-line);
+}
+.toolbar {
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.sidebar-item-active {
+  background: var(--color-surface);
+  box-shadow: inset 0 0 0 1px var(--color-line);
+}
+[data-theme="dark"] .sidebar-item-active {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+}
+
+/* ============================================================
+   Hairline rule
+   ============================================================ */
+
+.hairline { height: 1px; background: var(--color-line); }
+.hairline-soft { height: 1px; background: var(--color-line-soft); }
+
+/* ============================================================
+   Scrollbar — minimal overlay
+   ============================================================ */
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-fg) 18%, transparent);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-fg) 30%, transparent);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+/* ============================================================
+   Status pills
+   ============================================================ */
+
+.pill-pos {
+  background: var(--color-pos-bg); color: var(--color-pos);
+}
+.pill-warn {
+  background: var(--color-warn-bg); color: var(--color-warn);
+}
+.pill-neg {
+  background: var(--color-neg-bg); color: var(--color-neg);
+}
+.pill-neutral {
+  background: var(--color-surface-2); color: var(--color-fg-2);
+}
+
+/* ============================================================
+   Disclosure summary marker — keep it minimal
+   ============================================================ */
+
+details > summary { list-style: none; }
+details > summary::-webkit-details-marker { display: none; }
